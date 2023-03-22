@@ -3,36 +3,46 @@
 #include "pros/abstract_motor.hpp"
 #include "pros/motor_group.hpp"
 
+#define TOLERANCE_DEG 5
+
 namespace reauto {
 class RobotTemplate {
 public:
-    // set the forward voltage of the left motors
-    virtual void setLeftVoltage(double v) = 0;
+    // set the forward voltage of the left side
+    virtual void setLeftFwdVoltage(double voltage) = 0;
 
-    // set the forward voltage of the right motors
-    virtual void setRightVoltage(double v) = 0;
+    // set the forward voltage of the right side
+    virtual void setRightFwdVoltage(double voltage) = 0;
 
-    // set the forward velocity of the left motors
-    virtual void setLeftVelocity(double v) = 0;
+    // set the forward velocity of the left side
+    virtual void setLeftFwdVelocity(double velocity) = 0;
 
-    // set the forward velocity of the right motors
-    virtual void setRightVelocity(double v) = 0;
+    // set the forward velocity of the right side
+    virtual void setRightFwdVelocity(double velocity) = 0;
 
-    // set the voltages of the motors [L, R]
-    virtual void setVoltages(double vLeft, double vRight) = 0;
+    // set the forward voltage
+    virtual void setFwdVoltage(double voltage) = 0;
 
-    // set the velocities of the motors [L, R]
-    virtual void setVelocities(double vLeft, double vRight) = 0;
+    // set the forward velocity
+    virtual void setFwdVelocity(double velocity) = 0;
+
+    // set the turn voltage [-L, R]
+    virtual void setTurnVoltage(double voltage) = 0;
+
+    // set the turn velocity [-L, R]
+    virtual void setTurnVelocity(double velocity) = 0;
+
+    // set the forward relative target of the chassis
+    virtual void setFwdRelativeTarget(double deg, double velocity) = 0;
+
+    // set the turn relative target of the chassis
+    virtual void setTurnRelativeTarget(double deg, double velocity) = 0;
 
     // set the chassis brake mode
     virtual void setBrakeMode(pros::Motor_Brake mode) = 0;
 
     // brake the chassis
     virtual void brake() = 0;
-
-    // access the internal motor objects
-    virtual pros::MotorGroup* getLeftMotors() = 0;
-    virtual pros::MotorGroup* getRightMotors() = 0;
 
 protected:
     explicit RobotTemplate() = default;

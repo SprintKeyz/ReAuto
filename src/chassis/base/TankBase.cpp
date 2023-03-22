@@ -1,53 +1,86 @@
 #include "reauto/chassis/base/TankBase.hpp"
-#include "pros/abstract_motor.hpp"
-#include "pros/motor_group.hpp"
+#include "reauto/math/Convert.hpp"
 
 namespace reauto {
-TankBase::TankBase(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset)
-    : m_leftMotors(std::make_shared<pros::MotorGroup>(leftPorts, gearset)),
-    m_rightMotors(std::make_shared<pros::MotorGroup>(rightPorts, gearset)) {}
-
-void TankBase::setLeftVoltage(double v) {
-    m_leftMotors->move(v);
+TankBase::TankBase(std::initializer_list<int8_t> left, std::initializer_list<int8_t> right, pros::Motor_Gears gearset) {
+    // create the left and right motor groups
+    m_left = std::make_shared<pros::MotorGroup>(left, gearset);
+    m_right = std::make_shared<pros::MotorGroup>(right, gearset);
 }
 
-void TankBase::setRightVoltage(double v) {
-    m_rightMotors->move(v);
+void TankBase::setLeftFwdVoltage(double voltage) {
+    m_left->move(voltage);
 }
 
-void TankBase::setLeftVelocity(double v) {
-    m_leftMotors->move_velocity(v);
+void TankBase::setRightFwdVoltage(double voltage) {
+    m_right->move(voltage);
 }
 
-void TankBase::setRightVelocity(double v) {
-    m_rightMotors->move_velocity(v);
+void TankBase::setLeftFwdVelocity(double velocity) {
+    m_left->move_velocity(velocity);
 }
 
-void TankBase::setVoltages(double vLeft, double vRight) {
-    m_leftMotors->move(vLeft);
-    m_rightMotors->move(vRight);
+void TankBase::setRightFwdVelocity(double velocity) {
+    m_right->move_velocity(velocity);
 }
 
-void TankBase::setVelocities(double vLeft, double vRight) {
-    m_leftMotors->move_velocity(vLeft);
-    m_rightMotors->move_velocity(vRight);
+void TankBase::setFwdVoltage(double voltage) {
+    setLeftFwdVoltage(voltage);
+    setRightFwdVoltage(voltage);
+}
+
+void TankBase::setFwdVelocity(double velocity) {
+    setLeftFwdVelocity(velocity);
+    setRightFwdVelocity(velocity);
+}
+
+void TankBase::setTurnVoltage(double voltage) {
+    setLeftFwdVoltage(voltage);
+    setRightFwdVoltage(-voltage);
+}
+
+void TankBase::setTurnVelocity(double velocity) {
+    setLeftFwdVelocity(velocity);
+    setRightFwdVelocity(-velocity);
+}
+
+void TankBase::setFwdRelativeTarget(double deg, double velocity) {
+    double initial = m_left->get_position();
+
+    m_left->move_relative(deg, velocity);
+    m_right->move_relative(deg, velocity);
+
+    while ((m_left->get_position() - initial - deg) >= TOLERANCE_DEG || fabs(m_left->get_position() - initial - deg) <= TOLERANCE_DEG) {
+        pros::delay(15);
+    }
+}
+
+void TankBase::setTurnRelativeTarget(double deg, double velocity) {
+    double initial = m_left->get_position();
+
+    m_left->move_relative(deg, velocity);
+    m_right->move_relative(-deg, velocity);
+
+    while ((m_left->get_position() - initial - deg) >= TOLERANCE_DEG || fabs(m_left->get_position() - initial - deg) <= TOLERANCE_DEG) {
+        pros::delay(15);
+    }
 }
 
 void TankBase::setBrakeMode(pros::Motor_Brake mode) {
-    m_leftMotors->set_brake_mode(mode);
-    m_rightMotors->set_brake_mode(mode);
+    m_left->set_brake_mode(mode);
+    m_right->set_brake_mode(mode);
 }
 
 void TankBase::brake() {
-    m_leftMotors->brake();
-    m_rightMotors->brake();
+    m_left->brake();
+    m_right->brake();
 }
 
-pros::MotorGroup* TankBase::getLeftMotors() {
-    return m_leftMotors.get();
+pros::MotorGroup* TankBase::getLeftMotors() const {
+    return m_left.get();
 }
 
-pros::MotorGroup* TankBase::getRightMotors() {
-    return m_rightMotors.get();
+pros::MotorGroup* TankBase::getRightMotors() const {
+    return m_right.get();
 }
 }

@@ -29,15 +29,14 @@ void on_center_button() {
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
 auto chassis =
-reauto::ChassisBuilder()
+reauto::ChassisBuilder<HolonomicMode::MECANUM>()
 .motors({ 1, 2 }, { 3, 4 }, pros::Motor_Gears::blue)
 .controller(master)
 .imu(9, 10)
 .trackingWheels({ 12, 1 }, { 13, 6 }, true)
 .setTrackingWheelDiam(2.75)
 .odom()
-.holonomic(reauto::HolonomicMode::MECANUM)
-.buildFeedbackChassis();
+.buildWithFeedback();
 
 void initialize() {
 	pros::lcd::initialize();
@@ -45,7 +44,7 @@ void initialize() {
 
 	pros::lcd::register_btn1_cb(on_center_button);
 
-	chassis->getBackTrackingWheel()->getDistanceTraveled();
+	chassis->strafe(80, 100);
 }
 
 /**

@@ -3,24 +3,20 @@
 #include "pros/abstract_motor.hpp"
 #include "pros/misc.h"
 #include "reauto/chassis/template/RobotTemplate.hpp"
-#include "reauto/chassis/base/TankBase.hpp"
+#include "reauto/chassis/impl/HolonomicMode.hpp"
+
+#include <type_traits>
 
 namespace reauto {
-
-// keep track of the type of robot base
-enum class BaseType {
-    TANK = 0,
-    MECANUM = 1,
-};
-
+template<HolonomicMode HoloMode>
 class FeedForwardChassis {
 public:
-    FeedForwardChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, BaseType type, pros::Controller& controller);
-    FeedForwardChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, BaseType type, pros::Controller& controller, double tWidth, double gearRatio, double wheelDiam);
+    FeedForwardChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, pros::Controller& controller);
+    FeedForwardChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, pros::Controller& controller, double tWidth, double gearRatio, double wheelDiam);
 
     // virtual because we can override this in the feedback version
-    virtual void drive(double distance, double velocity, bool blocking = true);
-    virtual void turn(double angle, double velocity, bool blocking = true);
+    virtual void drive(double distance, double velocity);
+    virtual void turn(double angle, double velocity);
 
     // set the velocity and voltage of the motors
     void setleftVelocity(double velocity);
@@ -67,9 +63,18 @@ public:
     // update the chassis arcade drive with joystick values
     void arcade(double speedScale = 127);
 
+    // --------- HOLONOMIC DRIVE METHODS ---------
+
+    // set strafe voltage
+    template <HolonomicMode HM = HoloMode, typename std::enable_if<HM != HolonomicMode::NONE, int>::type = 0>
+    void strafe(double fwdPower, double sidePower);
+
+    // set strafe velocity
+    template <HolonomicMode HM = HoloMode, typename std::enable_if<HM != HolonomicMode::NONE, int>::type = 0>
+    void strafeVelocity(double fwdPower, double sidePower);
+
 private:
     std::shared_ptr<RobotTemplate> m_baseRobot;
-    const BaseType m_baseRobotType;
 
     // a reference to the controller
     pros::Controller& m_controller;

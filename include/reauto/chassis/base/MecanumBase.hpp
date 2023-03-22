@@ -1,15 +1,17 @@
 #pragma once
 
 #include "pros/abstract_motor.hpp"
-#include "reauto/chassis/template/RobotTemplate.hpp"
+#include "reauto/chassis/template/HolonomicRobotTemplate.hpp"
 #include <initializer_list>
+#include <memory>
+#include <vector>
 
 namespace reauto
 {
-class TankBase: public RobotTemplate
+class MecanumBase: public HolonomicRobotTemplate
 {
 public:
-    explicit TankBase(std::initializer_list<int8_t> left, std::initializer_list<int8_t> right, pros::Motor_Gears gearset);
+    explicit MecanumBase(std::initializer_list<int8_t> left, std::initializer_list<int8_t> right, pros::Motor_Gears gearset);
 
     void setLeftFwdVoltage(double voltage) override;
     void setRightFwdVoltage(double voltage) override;
@@ -23,6 +25,9 @@ public:
     void setTurnVoltage(double voltage) override;
     void setTurnVelocity(double velocity) override;
 
+    void setStrafeVoltage(double fwdPower, double sidePower) override;
+    void setStrafeVelocity(double fwdVel, double sideVel) override;
+
     void setFwdRelativeTarget(double deg, double velocity) override;
     void setTurnRelativeTarget(double deg, double velocity) override;
 
@@ -30,11 +35,14 @@ public:
     void brake() override;
 
     // get motors
-    pros::MotorGroup* getLeftMotors() const;
-    pros::MotorGroup* getRightMotors() const;
+    std::vector<std::shared_ptr<pros::Motor>>* getLeftMotors();
+    std::vector<std::shared_ptr<pros::Motor>>* getRightMotors();
 
 private:
-    std::shared_ptr<pros::MotorGroup> m_left;
-    std::shared_ptr<pros::MotorGroup> m_right;
+    // we need individual motors, PROS 4 removes the ability to
+    // index for setters.
+
+    std::vector<std::shared_ptr<pros::Motor>> m_left;
+    std::vector<std::shared_ptr<pros::Motor>> m_right;
 };
 }

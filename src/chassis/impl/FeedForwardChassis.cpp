@@ -1,142 +1,154 @@
 #include "reauto/chassis/impl/FeedForwardChassis.hpp"
+#include "reauto/chassis/impl/HolonomicMode.hpp"
 #include "reauto/math/Convert.hpp"
 #include "reauto/motion/Slew.hpp"
 
+// bases
+#include "reauto/chassis/base/TankBase.hpp"
+#include "reauto/chassis/base/MecanumBase.hpp"
+#include "reauto/chassis/template/RobotTemplate.hpp"
+
 namespace reauto {
-FeedForwardChassis::FeedForwardChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, BaseType type, pros::Controller& controller)
+
+template <HolonomicMode HoloMode>
+FeedForwardChassis<HoloMode>::FeedForwardChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, pros::Controller& controller)
     :
-    m_baseRobotType(type),
     m_controller(controller),
     m_trackWidth(0.0),
     m_gearRatio(0.0),
     m_wheelDiameter(0.0) {
 
-    switch (m_baseRobotType) {
-    case BaseType::TANK:
+    switch (HoloMode) {
+    case HolonomicMode::NONE:
         m_baseRobot = std::make_shared<TankBase>(leftPorts, rightPorts, gearset);
         break;
-    case BaseType::MECANUM:
-        break;
+    case HolonomicMode::MECANUM:
+        m_baseRobot = std::make_shared<MecanumBase>(leftPorts, rightPorts, gearset);
     }
 }
 
-FeedForwardChassis::FeedForwardChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, BaseType type, pros::Controller& controller, double tWidth, double gearRatio, double wheelDiam)
+template <HolonomicMode HoloMode>
+FeedForwardChassis<HoloMode>::FeedForwardChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, pros::Controller& controller, double tWidth, double gearRatio, double wheelDiam)
     :
-    m_baseRobotType(type),
     m_controller(controller),
     m_trackWidth(tWidth),
     m_gearRatio(gearRatio),
     m_wheelDiameter(wheelDiam) {
 
-    switch (m_baseRobotType) {
-    case BaseType::TANK:
+    switch (HoloMode) {
+    case HolonomicMode::NONE:
         m_baseRobot = std::make_shared<TankBase>(leftPorts, rightPorts, gearset);
         break;
-    case BaseType::MECANUM:
-        break;
+    case HolonomicMode::MECANUM:
+        m_baseRobot = std::make_shared<MecanumBase>(leftPorts, rightPorts, gearset);
     }
 }
 
-void FeedForwardChassis::drive(double distance, double velocity, bool blocking) {
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::drive(double distance, double velocity) {
     // convert distance to degrees
     double degrees = math::inToDeg(distance, m_wheelDiameter);
 
-    // tolerance for movements (we can stop if within x degrees)
-    double tolerance = 5.0;
-
-    // store the initial position (for blocking)
-    double initialPos = m_baseRobot->getLeftMotors()->get_position();
-
     // velocity is in RPM
-    m_baseRobot->getLeftMotors()->move_relative(degrees, velocity);
-    m_baseRobot->getRightMotors()->move_relative(degrees, velocity);
-
-    // wait for completion
-    // PROS dev team doesn't include a way to check if a motor
-    // group is moving, so we have to check the position
-    if (blocking) {
-        while (m_baseRobot->getLeftMotors()->get_position() < (initialPos + degrees) - tolerance) {
-            pros::delay(15);
-        }
-    }
+    m_baseRobot->setFwdRelativeTarget(degrees, velocity);
 }
 
-void FeedForwardChassis::turn(double angle, double velocity, bool blocking) {
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::turn(double angle, double velocity) {
     // TODO: Implement turns!
+    throw std::runtime_error("Pure FeedForward turns are not implemented yet!");
 }
 
-void FeedForwardChassis::setleftVelocity(double velocity) {
-    m_baseRobot->setLeftVelocity(velocity);
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setleftVelocity(double velocity) {
+    m_baseRobot->setLeftFwdVelocity(velocity);
 }
 
-void FeedForwardChassis::setrightVelocity(double velocity) {
-    m_baseRobot->setRightVelocity(velocity);
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setrightVelocity(double velocity) {
+    m_baseRobot->setRightFwdVelocity(velocity);
 }
 
-void FeedForwardChassis::setleftVoltage(double voltage) {
-    m_baseRobot->setLeftVoltage(voltage);
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setleftVoltage(double voltage) {
+    m_baseRobot->setLeftFwdVoltage(voltage);
 }
 
-void FeedForwardChassis::setrightVoltage(double voltage) {
-    m_baseRobot->setRightVoltage(voltage);
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setrightVoltage(double voltage) {
+    m_baseRobot->setRightFwdVoltage(voltage);
 }
 
-void FeedForwardChassis::setForwardVelocity(double velocity) {
-    m_baseRobot->setVelocities(velocity, velocity);
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setForwardVelocity(double velocity) {
+    m_baseRobot->setFwdVelocity(velocity);
 }
 
-void FeedForwardChassis::setTurnVelocity(double velocity) {
-    m_baseRobot->setVelocities(-velocity, velocity);
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setTurnVelocity(double velocity) {
+    m_baseRobot->setTurnVelocity(velocity);
 }
 
-void FeedForwardChassis::setForwardVoltage(double voltage) {
-    m_baseRobot->setVoltages(voltage, voltage);
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setForwardVoltage(double voltage) {
+    m_baseRobot->setFwdVoltage(voltage);
 }
 
-void FeedForwardChassis::setTurnVoltage(double voltage) {
-    m_baseRobot->setVoltages(-voltage, voltage);
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setTurnVoltage(double voltage) {
+    m_baseRobot->setTurnVoltage(voltage);
 }
 
-void FeedForwardChassis::setBrakeMode(pros::Motor_Brake mode) {
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setBrakeMode(pros::Motor_Brake mode) {
     m_baseRobot->setBrakeMode(mode);
 }
 
-void FeedForwardChassis::brake() {
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::brake() {
     m_baseRobot->brake();
 }
 
-void FeedForwardChassis::setSlewDrive(double normal, double signChange) {
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setSlewDrive(double normal, double signChange) {
     m_slewStep = normal;
     m_slewStepSignChange = signChange > 0 ? signChange : normal;
 }
 
-void FeedForwardChassis::setDriveExponent(double exponent) {
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setDriveExponent(double exponent) {
     m_exponent = exponent;
 }
 
-void FeedForwardChassis::setDriveMaxSpeed(double maxSpeed) {
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setDriveMaxSpeed(double maxSpeed) {
     m_driveMaxSpeed = maxSpeed;
 }
 
-void FeedForwardChassis::setControllerDeadband(double deadband) {
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setControllerDeadband(double deadband) {
     m_deadband = deadband;
 }
 
-void FeedForwardChassis::setArcadeDriveChannels(pros::controller_analog_e_t forwardChannel, pros::controller_analog_e_t turnChannel) {
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setArcadeDriveChannels(pros::controller_analog_e_t forwardChannel, pros::controller_analog_e_t turnChannel) {
     m_forwardChannel = forwardChannel;
     m_turnChannel = turnChannel;
 }
 
-double FeedForwardChassis::calcExponentialDrive(double input) {
+template <HolonomicMode HoloMode>
+double FeedForwardChassis<HoloMode>::calcExponentialDrive(double input) {
     return (std::pow(input, m_exponent) / (std::pow(100, 2)));
 }
 
-void FeedForwardChassis::setCustomDriveBehavior(std::function<double(double)> function) {
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::setCustomDriveBehavior(std::function<double(double)> function) {
     m_driveCustomBehavior = function;
     m_useCustomBehavior = true;
 }
 
-void FeedForwardChassis::tank(double speedScale) {
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::tank(double speedScale) {
     // get left and right joystick values
     double left = m_controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
     double right = m_controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y);
@@ -174,14 +186,16 @@ void FeedForwardChassis::tank(double speedScale) {
     right *= speedScale / 127.0;
 
     // set the motor voltages
-    m_baseRobot->setVoltages(left, right);
+    m_baseRobot->setLeftFwdVoltage(left);
+    m_baseRobot->setRightFwdVoltage(right);
 
     // update the current voltage values
     m_currentLeftVoltage = left;
     m_currentRightVoltage = right;
 }
 
-void FeedForwardChassis::arcade(double speedScale) {
+template <HolonomicMode HoloMode>
+void FeedForwardChassis<HoloMode>::arcade(double speedScale) {
     // get forward and turn joystick values
     double forward = m_controller.get_analog(m_forwardChannel);
     double turn = m_controller.get_analog(m_turnChannel);
@@ -223,7 +237,8 @@ void FeedForwardChassis::arcade(double speedScale) {
     right *= speedScale / 127.0;
 
     // set the motor voltages
-    m_baseRobot->setVoltages(left, right);
+    m_baseRobot->setLeftFwdVoltage(left);
+    m_baseRobot->setRightFwdVoltage(right);
 
     // update the current voltage values
     m_currentLeftVoltage = left;

@@ -12,14 +12,15 @@ enum class TrackingWheelConfig {
     LEFT_RIGHT_BACK = 2,
 };
 
-class FeedbackChassis: public FeedForwardChassis {
+template <HolonomicMode HoloMode>
+class FeedbackChassis: public FeedForwardChassis<HoloMode> {
     friend class BangBangController;
 
 public:
-    FeedbackChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, BaseType type, pros::Controller& controller, double tWidth, double gearRatio, double wheelDiam, uint8_t imuA, uint8_t imuB, std::pair<int8_t, double> leftTWheel, std::pair<int8_t, double> rightTWheel, std::pair<int8_t, double> backTWheel, double tWheelDiam);
-    FeedbackChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, BaseType type, pros::Controller& controller, double tWidth, double gearRatio, double wheelDiam, uint8_t imu, std::pair<int8_t, double> leftTWheel, std::pair<int8_t, double> rightTWheel, std::pair<int8_t, double> backTWheel, double tWheelDiam);
-    FeedbackChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, BaseType type, pros::Controller& controller, double tWidth, double gearRatio, double wheelDiam, uint8_t imuA, uint8_t imuB, std::pair<int8_t, double> firstTWheel, std::pair<int8_t, double> secondTWheel, bool centerConfig, double tWheelDiam);
-    FeedbackChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, BaseType type, pros::Controller& controller, double tWidth, double gearRatio, double wheelDiam, uint8_t imu, std::pair<int8_t, double> firstTWheel, std::pair<int8_t, double> secondTWheel, bool centerConfig, double tWheelDiam);
+    FeedbackChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, pros::Controller& controller, double tWidth, double gearRatio, double wheelDiam, uint8_t imuA, uint8_t imuB, std::pair<int8_t, double> leftTWheel, std::pair<int8_t, double> rightTWheel, std::pair<int8_t, double> backTWheel, double tWheelDiam);
+    FeedbackChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, pros::Controller& controller, double tWidth, double gearRatio, double wheelDiam, uint8_t imu, std::pair<int8_t, double> leftTWheel, std::pair<int8_t, double> rightTWheel, std::pair<int8_t, double> backTWheel, double tWheelDiam);
+    FeedbackChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, pros::Controller& controller, double tWidth, double gearRatio, double wheelDiam, uint8_t imuA, uint8_t imuB, std::pair<int8_t, double> firstTWheel, std::pair<int8_t, double> secondTWheel, bool centerConfig, double tWheelDiam);
+    FeedbackChassis(std::initializer_list<int8_t> leftPorts, std::initializer_list<int8_t> rightPorts, pros::Motor_Gears gearset, pros::Controller& controller, double tWidth, double gearRatio, double wheelDiam, uint8_t imu, std::pair<int8_t, double> firstTWheel, std::pair<int8_t, double> secondTWheel, bool centerConfig, double tWheelDiam);
 
     // getting sensor values
     inline device::TrackingWheel* getLeftTrackingWheel() const { return m_leftTWheel.get(); }

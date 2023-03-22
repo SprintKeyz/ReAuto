@@ -7,14 +7,11 @@
 #include "pros/misc.hpp"
 #include "reauto/chassis/impl/FeedForwardChassis.hpp"
 #include "reauto/chassis/impl/FeedbackChassis.hpp"
+#include "reauto/chassis/impl/HolonomicMode.hpp"
 
 namespace reauto {
-enum class HolonomicMode {
-    NONE = 0,
-    MECANUM = 1,
-    X = 2,
-};
 
+template <HolonomicMode HoloMode = HolonomicMode::NONE>
 class ChassisBuilder {
 public:
     // pass motor ports
@@ -46,12 +43,13 @@ public:
     // enable odometry
     ChassisBuilder& odom();
 
-    // set holonomic mode
-    ChassisBuilder& holonomic(HolonomicMode mode);
+    // build the chassis
+    std::shared_ptr<FeedbackChassis<HoloMode>> build();
 
-    // build it!
-    std::shared_ptr<FeedForwardChassis> build();
-    std::shared_ptr<FeedbackChassis> buildFeedbackChassis();
+    // build the chassis with feedback
+    std::shared_ptr<FeedbackChassis<HoloMode>> buildWithFeedback();
+
+    // <build with odom here>
 
 private:
     // wheel ports
@@ -90,8 +88,5 @@ private:
 
     // use odometry?
     bool m_odomEnabled = false;
-
-    // set holonomic mode
-    HolonomicMode m_holoMode = HolonomicMode::NONE;
 };
 }
