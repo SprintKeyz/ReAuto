@@ -2,6 +2,7 @@
 
 #include "pros/abstract_motor.hpp"
 #include "reauto/chassis/template/RobotTemplate.hpp"
+#include "reauto/device/MotorSet.hpp"
 #include <initializer_list>
 
 namespace reauto
@@ -30,11 +31,11 @@ public:
     void brake() override;
 
     // get motors
-    pros::MotorGroup* getLeftMotors() const;
-    pros::MotorGroup* getRightMotors() const;
+    MotorSet* getLeftMotors() const;
+    MotorSet* getRightMotors() const;
 
 private:
-    std::shared_ptr<pros::MotorGroup> m_left;
-    std::shared_ptr<pros::MotorGroup> m_right;
+    std::shared_ptr<MotorSet> m_left;
+    std::shared_ptr<MotorSet> m_right;
 };
 }

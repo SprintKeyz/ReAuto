@@ -1,0 +1,11 @@
+
+
+FRESULT vexFileDirectoryGet(const char* path, char* buffer, uint32_t len);
+void vexFileSync(FIL* fdp);
+uint32_t vexFileStatus(const char* filename);
+
+predictions?
+
+vexFileStatus - probably gets the R/W status of the file
+vexFileSync - (MAYBE - Wild guess here) syncs a file to the SD card(???) or far more likely simply updates the file structure.
+vexFileDirectoryGet - probably returns the directory of a file

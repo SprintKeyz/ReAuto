@@ -1,7 +1,7 @@
 #include "reauto/chassis/impl/FeedForwardChassis.hpp"
 #include "reauto/chassis/impl/HolonomicMode.hpp"
-#include "reauto/math/Convert.hpp"
 #include "reauto/motion/Slew.hpp"
+#include "reauto/math/Convert.hpp"
 
 // bases
 #include "reauto/chassis/base/TankBase.hpp"

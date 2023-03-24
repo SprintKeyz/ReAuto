@@ -4,6 +4,7 @@
 #include "pros/misc.h"
 #include "reauto/chassis/template/RobotTemplate.hpp"
 #include "reauto/chassis/impl/HolonomicMode.hpp"
+#include "reauto/chassis/base/MecanumBase.hpp"
 
 #include <type_traits>
 
@@ -66,12 +67,20 @@ public:
     // --------- HOLONOMIC DRIVE METHODS ---------
 
     // set strafe voltage
-    template <HolonomicMode HM = HoloMode, typename std::enable_if<HM != HolonomicMode::NONE, int>::type = 0>
-    void strafe(double fwdPower, double sidePower);
+    template <HolonomicMode HM = HoloMode, typename = std::enable_if_t<HM != HolonomicMode::NONE>>
+    void strafe(double fwdPower, double sidePower) {
+        // static cast m_robot to MecanumBase
+        auto robot = static_cast<MecanumBase*>(m_baseRobot.get());
+        robot->setStrafeVoltage(fwdPower, sidePower);
+    }
 
     // set strafe velocity
-    template <HolonomicMode HM = HoloMode, typename std::enable_if<HM != HolonomicMode::NONE, int>::type = 0>
-    void strafeVelocity(double fwdPower, double sidePower);
+    template <HolonomicMode HM = HoloMode, typename = std::enable_if_t<HM != HolonomicMode::NONE>>
+    void strafeVelocity(double fwdPower, double sidePower) {
+        // static cast m_robot to MecanumBase
+        auto robot = static_cast<MecanumBase*>(m_baseRobot.get());
+        robot->setStrafeVelocity(fwdPower, sidePower);
+    }
 
 private:
     std::shared_ptr<RobotTemplate> m_baseRobot;

@@ -2,6 +2,7 @@
 
 #include "pros/abstract_motor.hpp"
 #include "reauto/chassis/template/HolonomicRobotTemplate.hpp"
+#include "reauto/device/MotorSet.hpp"
 #include <initializer_list>
 #include <memory>
 #include <vector>
@@ -35,14 +36,14 @@ public:
     void brake() override;
 
     // get motors
-    std::vector<std::shared_ptr<pros::Motor>>* getLeftMotors();
-    std::vector<std::shared_ptr<pros::Motor>>* getRightMotors();
+    MotorSet* getLeftMotors() const;
+    MotorSet* getRightMotors() const;
 
 private:
     // we need individual motors, PROS 4 removes the ability to
     // index for setters.
 
-    std::vector<std::shared_ptr<pros::Motor>> m_left;
-    std::vector<std::shared_ptr<pros::Motor>> m_right;
+    std::shared_ptr<MotorSet> m_left;
+    std::shared_ptr<MotorSet> m_right;
 };
 }

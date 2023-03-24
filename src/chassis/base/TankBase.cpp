@@ -4,8 +4,8 @@
 namespace reauto {
 TankBase::TankBase(std::initializer_list<int8_t> left, std::initializer_list<int8_t> right, pros::Motor_Gears gearset) {
     // create the left and right motor groups
-    m_left = std::make_shared<pros::MotorGroup>(left, gearset);
-    m_right = std::make_shared<pros::MotorGroup>(right, gearset);
+    m_left = std::make_shared<MotorSet>(left, gearset);
+    m_right = std::make_shared<MotorSet>(right, gearset);
 }
 
 void TankBase::setLeftFwdVoltage(double voltage) {
@@ -76,11 +76,11 @@ void TankBase::brake() {
     m_right->brake();
 }
 
-pros::MotorGroup* TankBase::getLeftMotors() const {
+MotorSet* TankBase::getLeftMotors() const {
     return m_left.get();
 }
 
-pros::MotorGroup* TankBase::getRightMotors() const {
+MotorSet* TankBase::getRightMotors() const {
     return m_right.get();
 }
 }
