@@ -17,8 +17,14 @@ public:
     void setLeftFwdVoltage(double voltage) override;
     void setRightFwdVoltage(double voltage) override;
 
+    void setLeftStrafeVoltage(double voltage) override;
+    void setRightStrafeVoltage(double voltage) override;
+
     void setLeftFwdVelocity(double velocity) override;
     void setRightFwdVelocity(double velocity) override;
+
+    void setLeftStrafeVelocity(double velocity) override;
+    void setRightStrafeVelocity(double velocity) override;
 
     void setFwdVoltage(double voltage) override;
     void setFwdVelocity(double velocity) override;
@@ -28,9 +34,6 @@ public:
 
     void setStrafeVoltage(double fwdPower, double sidePower) override;
     void setStrafeVelocity(double fwdVel, double sideVel) override;
-
-    void setFwdRelativeTarget(double deg, double velocity) override;
-    void setTurnRelativeTarget(double deg, double velocity) override;
 
     void setBrakeMode(pros::Motor_Brake mode) override;
     void brake() override;

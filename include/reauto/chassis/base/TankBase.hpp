@@ -24,9 +24,6 @@ public:
     void setTurnVoltage(double voltage) override;
     void setTurnVelocity(double velocity) override;
 
-    void setFwdRelativeTarget(double deg, double velocity) override;
-    void setTurnRelativeTarget(double deg, double velocity) override;
-
     void setBrakeMode(pros::Motor_Brake mode) override;
     void brake() override;
 

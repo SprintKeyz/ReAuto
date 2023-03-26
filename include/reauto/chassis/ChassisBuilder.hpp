@@ -5,8 +5,7 @@
 #include <variant>
 #include "pros/abstract_motor.hpp"
 #include "pros/misc.hpp"
-#include "reauto/chassis/impl/FeedForwardChassis.hpp"
-#include "reauto/chassis/impl/FeedbackChassis.hpp"
+#include "reauto/chassis/impl/MotionChassis.hpp"
 #include "reauto/chassis/impl/HolonomicMode.hpp"
 
 namespace reauto {
@@ -41,37 +40,42 @@ public:
     }
 
     // pass tracking wheel config (port, center dist)
-    ChassisBuilder& trackingWheels(std::pair<int8_t, double> left, std::pair<int8_t, double> right, std::pair<int8_t, double> back) {
-        m_lTWheelPort = left.first;
-        m_lTWheelDist = left.second;
-        m_rTWheelPort = right.first;
-        m_rTWheelDist = right.second;
-        m_bTWheelPort = back.first;
-        m_bTWheelDist = back.second;
+    ChassisBuilder& trackingWheels(std::pair<int8_t, double> left, std::pair<int8_t, double> right, std::pair<int8_t, double> back, double diam) {
+        m_firstTWheelPort = left.first;
+        m_firstTWheelDist = left.second;
+
+        m_secondTWheelPort = right.first;
+        m_secondTWheelDist = right.second;
+
+        m_thirdTWheelPort = back.first;
+        m_thirdTWheelDist = back.second;
+
+        m_tConfig = TrackingConfiguration::LRB;
+        m_tWheelDiam = diam;
         return *this;
     }
 
-    ChassisBuilder& trackingWheels(std::pair<int8_t, double> first, std::pair<int8_t, double> second, bool centerConfig = false) {
+    ChassisBuilder& trackingWheels(std::pair<int8_t, double> first, std::pair<int8_t, double> second, double diam, bool centerConfig = false) {
         if (centerConfig) {
             // center + back wheels
-            m_cTWheelPort = first.first;
-            m_cTWheelDist = first.second;
-            m_bTWheelPort = second.first;
-            m_bTWheelDist = second.second;
+            m_firstTWheelPort = first.first;
+            m_firstTWheelDist = first.second;
+            m_secondTWheelPort = second.first;
+            m_secondTWheelDist = second.second;
+
+            m_tConfig = TrackingConfiguration::CB;
         }
 
         else {
             // left + right wheels
-            m_lTWheelPort = first.first;
-            m_lTWheelDist = first.second;
-            m_rTWheelPort = second.first;
-            m_rTWheelDist = second.second;
-        }
-        return *this;
-    }
+            m_firstTWheelPort = first.first;
+            m_firstTWheelDist = first.second;
+            m_secondTWheelPort = second.first;
+            m_secondTWheelDist = second.second;
 
-    // set tracking wheel diameter
-    ChassisBuilder& setTrackingWheelDiam(double diam) {
+            m_tConfig = TrackingConfiguration::LR;
+        }
+
         m_tWheelDiam = diam;
         return *this;
     }
@@ -94,65 +98,10 @@ public:
         return *this;
     }
 
-    // enable odometry
-    ChassisBuilder& odom() {
-        m_odomEnabled = true;
-        return *this;
-    }
-
-    // build the chassis
-    std::shared_ptr<FeedForwardChassis<HoloMode>> build() {
-        return std::make_shared<FeedForwardChassis<HoloMode>>(m_left, m_right, m_gearset, *m_controller, m_trackWidth, m_gearRatio, m_wheelDiam);
-    }
-
     // build the chassis with feedback
-    std::shared_ptr<FeedbackChassis<HoloMode>> buildWithFeedback() {
-        // check if tracking wheels are valid
-    // INVALID: only back wheel, only left or right wheel, only center wheel, no diam
-        if ((m_lTWheelPort == 0 && m_rTWheelPort == 0 && m_cTWheelPort == 0) ||
-            m_tWheelDiam <= 0 ||
-            (m_lTWheelPort == 0 && m_cTWheelPort == 0 && m_rTWheelPort != 0) ||
-            (m_lTWheelPort != 0 && m_cTWheelPort == 0 && m_rTWheelPort == 0) ||
-            (m_lTWheelPort == 0 && m_cTWheelPort != 0 && m_rTWheelPort == 0 && m_bTWheelPort == 0) ||
-            (m_lTWheelPort == 0 && m_cTWheelPort == 0 && m_rTWheelPort == 0 && m_bTWheelPort != 0)) {
-            std::cout << "[ReAuto] ERROR: Your tracking wheel configuration is not valid. Please check your configuration." << std::endl;
-            return nullptr;
-        }
-
-        if (m_imuA == 0) {
-            std::cout << "[ReAuto] ERROR: You must specify an IMU port for the feedback chassis." << std::endl;
-            return nullptr;
-        }
-
-        // make tracking wheel pairs for each possible wheel
-        std::pair<int8_t, double> lTWheel = std::make_pair(m_lTWheelPort, m_lTWheelDist);
-        std::pair<int8_t, double> rTWheel = std::make_pair(m_rTWheelPort, m_rTWheelDist);
-        std::pair<int8_t, double> cTWheel = std::make_pair(m_cTWheelPort, m_cTWheelDist);
-        std::pair<int8_t, double> bTWheel = std::make_pair(m_bTWheelPort, m_bTWheelDist);
-
-        if (m_lTWheelPort != 0 && m_rTWheelPort != 0 && m_bTWheelPort != 0) {
-            if (m_imuB != 0)
-                return std::make_shared<FeedbackChassis<HoloMode>>(m_left, m_right, m_gearset, *m_controller, m_trackWidth, m_gearRatio, m_wheelDiam, m_imuA, m_imuB, lTWheel, rTWheel, bTWheel, m_tWheelDiam);
-            else
-                return std::make_shared<FeedbackChassis<HoloMode>>(m_left, m_right, m_gearset, *m_controller, m_trackWidth, m_gearRatio, m_wheelDiam, m_imuA, lTWheel, rTWheel, bTWheel, m_tWheelDiam);
-        }
-
-        // the false indicates that it is NOT a center t wheel config
-        if (m_lTWheelPort != 0 && m_rTWheelDist != 0) {
-            if (m_imuB != 0)
-                return std::make_shared<FeedbackChassis<HoloMode>>(m_left, m_right, m_gearset, *m_controller, m_trackWidth, m_gearRatio, m_wheelDiam, m_imuA, m_imuB, lTWheel, rTWheel, false, m_tWheelDiam);
-            else
-                return std::make_shared<FeedbackChassis<HoloMode>>(m_left, m_right, m_gearset, *m_controller, m_trackWidth, m_gearRatio, m_wheelDiam, m_imuA, lTWheel, rTWheel, false, m_tWheelDiam);
-        }
-
-        // all that is left is the center t wheel config
-        if (m_imuB != 0)
-            return std::make_shared<FeedbackChassis<HoloMode>>(m_left, m_right, m_gearset, *m_controller, m_trackWidth, m_gearRatio, m_wheelDiam, m_imuA, m_imuB, cTWheel, bTWheel, true, m_tWheelDiam);
-        else
-            return std::make_shared<FeedbackChassis<HoloMode>>(m_left, m_right, m_gearset, *m_controller, m_trackWidth, m_gearRatio, m_wheelDiam, m_imuA, cTWheel, bTWheel, true, m_tWheelDiam);
+    std::shared_ptr<MotionChassis> build() {
+        return std::make_shared<MotionChassis>(m_left, m_right, m_gearset, *m_controller, HoloMode, m_imuA, m_imuB, m_firstTWheelPort, m_firstTWheelDist, m_secondTWheelPort, m_secondTWheelDist, m_thirdTWheelPort, m_thirdTWheelDist, m_tWheelDiam, m_tConfig, m_trackWidth, m_wheelDiam, m_gearRatio);
     }
-
-    // <build with odom here>
 
 private:
     // wheel ports
@@ -170,16 +119,17 @@ private:
     uint8_t m_imuB = 0;
 
     // tracking wheel ports
-    int8_t m_lTWheelPort = 0;
-    int8_t m_rTWheelPort = 0;
-    int8_t m_cTWheelPort = 0;
-    int8_t m_bTWheelPort = 0;
+    int8_t m_firstTWheelPort = 0;
+    int8_t m_secondTWheelPort = 0;
+    int8_t m_thirdTWheelPort = 0;
 
-    // tracking wheel distances
-    double m_lTWheelDist = 0;
-    double m_rTWheelDist = 0;
-    double m_cTWheelDist = 0;
-    double m_bTWheelDist = 0;
+    // tracking wheel center dist
+    double m_firstTWheelDist = 0;
+    double m_secondTWheelDist = 0;
+    double m_thirdTWheelDist = 0;
+
+    // tracking wheel config
+    TrackingConfiguration m_tConfig;
 
     // tracking wheel diameter
     double m_tWheelDiam = 0;
@@ -188,8 +138,5 @@ private:
     double m_trackWidth = 0;
     double m_wheelDiam = 0;
     double m_gearRatio = 0;
-
-    // use odometry?
-    bool m_odomEnabled = false;
 };
 }

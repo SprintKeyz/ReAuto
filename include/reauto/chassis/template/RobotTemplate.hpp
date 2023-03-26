@@ -32,12 +32,6 @@ public:
     // set the turn velocity [-L, R]
     virtual void setTurnVelocity(double velocity) = 0;
 
-    // set the forward relative target of the chassis
-    virtual void setFwdRelativeTarget(double deg, double velocity) = 0;
-
-    // set the turn relative target of the chassis
-    virtual void setTurnRelativeTarget(double deg, double velocity) = 0;
-
     // set the chassis brake mode
     virtual void setBrakeMode(pros::Motor_Brake mode) = 0;
 

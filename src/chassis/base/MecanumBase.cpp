@@ -25,12 +25,32 @@ void MecanumBase::setRightFwdVoltage(double voltage) {
     m_right->move(voltage);
 }
 
+void MecanumBase::setLeftStrafeVoltage(double voltage) {
+    m_left.get()[0].move(voltage);
+    m_left.get()[1].move(-voltage);
+}
+
+void MecanumBase::setRightStrafeVoltage(double voltage) {
+    m_right.get()[0].move(-voltage);
+    m_right.get()[1].move(voltage);
+}
+
 void MecanumBase::setLeftFwdVelocity(double velocity) {
     m_left->move_velocity(velocity);
 }
 
 void MecanumBase::setRightFwdVelocity(double velocity) {
     m_right->move_velocity(velocity);
+}
+
+void MecanumBase::setLeftStrafeVelocity(double velocity) {
+    m_left.get()[0].move_velocity(velocity);
+    m_left.get()[1].move_velocity(-velocity);
+}
+
+void MecanumBase::setRightStrafeVelocity(double velocity) {
+    m_right.get()[0].move_velocity(-velocity);
+    m_right.get()[1].move_velocity(velocity);
 }
 
 void MecanumBase::setFwdVoltage(double voltage) {
@@ -68,28 +88,6 @@ void MecanumBase::setStrafeVelocity(double fwdVel, double sideVel) {
     m_left.get()[1].move_velocity(fwdVel - sideVel);
     m_right.get()[0].move_velocity(fwdVel - sideVel);
     m_right.get()[1].move_velocity(fwdVel + sideVel);
-}
-
-void MecanumBase::setFwdRelativeTarget(double deg, double velocity) {
-    double initial = m_left->get_position();
-
-    m_left->move_relative(deg, velocity);
-    m_right->move_relative(deg, velocity);
-
-    while ((m_left->get_position() - initial - deg) >= TOLERANCE_DEG || fabs(m_left->get_position() - initial - deg) <= TOLERANCE_DEG) {
-        pros::delay(15);
-    }
-}
-
-void MecanumBase::setTurnRelativeTarget(double deg, double velocity) {
-    double initial = m_left->get_position();
-
-    m_left->move_relative(deg, velocity);
-    m_right->move_relative(-deg, velocity);
-
-    while ((m_left->get_position() - initial - deg) >= TOLERANCE_DEG || fabs(m_left->get_position() - initial - deg) <= TOLERANCE_DEG) {
-        pros::delay(15);
-    }
 }
 
 void MecanumBase::setBrakeMode(pros::Motor_Brake mode) {

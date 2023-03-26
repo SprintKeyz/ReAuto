@@ -44,28 +44,6 @@ void TankBase::setTurnVelocity(double velocity) {
     setRightFwdVelocity(-velocity);
 }
 
-void TankBase::setFwdRelativeTarget(double deg, double velocity) {
-    double initial = m_left->get_position();
-
-    m_left->move_relative(deg, velocity);
-    m_right->move_relative(deg, velocity);
-
-    while ((m_left->get_position() - initial - deg) >= TOLERANCE_DEG || fabs(m_left->get_position() - initial - deg) <= TOLERANCE_DEG) {
-        pros::delay(15);
-    }
-}
-
-void TankBase::setTurnRelativeTarget(double deg, double velocity) {
-    double initial = m_left->get_position();
-
-    m_left->move_relative(deg, velocity);
-    m_right->move_relative(-deg, velocity);
-
-    while ((m_left->get_position() - initial - deg) >= TOLERANCE_DEG || fabs(m_left->get_position() - initial - deg) <= TOLERANCE_DEG) {
-        pros::delay(15);
-    }
-}
-
 void TankBase::setBrakeMode(pros::Motor_Brake mode) {
     m_left->set_brake_mode(mode);
     m_right->set_brake_mode(mode);
