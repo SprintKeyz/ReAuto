@@ -14,7 +14,9 @@ public:
 
     // drive
     void drive(double distance, double maxSpeed = 127);
+    void drive(Point target, double maxSpeed = 127);
     void turn(double angle, double maxSpeed = 127, bool relative = false);
+    void turn(Point target, double maxSpeed = 127);
 
 private:
     // chassis

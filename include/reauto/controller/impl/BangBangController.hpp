@@ -12,7 +12,7 @@ public:
     void setTarget(double target) override;
 
     // calculate the controller output
-    double calculate(double current) override;
+    double calculate(double error) override;
 
     // check if the controller is settled
     bool settled() override;

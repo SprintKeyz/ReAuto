@@ -43,10 +43,10 @@ void PIDController::setTarget(double target) {
     resetController();
 }
 
-double PIDController::calculate(double current) {
+double PIDController::calculate(double error) {
     // time is current millis - last millis
     // we use this method to increase accuracy
-    m_error = m_target - current;
+    m_error = error;
 
     double dt = (m_lastTime == 0) ? MOTION_TIMESTEP : pros::millis() - m_lastTime;
 

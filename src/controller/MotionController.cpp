@@ -1,5 +1,6 @@
 #include "reauto/controller/MotionController.hpp"
 #include "reauto/controller/impl/PIDController.hpp"
+#include "reauto/math/Calculate.hpp"
 #include "reauto/math/Convert.hpp"
 
 namespace reauto {
@@ -22,23 +23,92 @@ MotionController::MotionController(std::shared_ptr<MotionChassis> chassis, contr
 // drive
 void MotionController::drive(double distance, double maxSpeed) {
     m_linear->setTarget(distance);
-    if (m_headingController != nullptr) m_headingController->setTarget(m_chassis->getHeading());
+    double initialAngle = m_chassis->getHeading();
+    if (m_headingController != nullptr) m_headingController->setTarget(initialAngle);
 
     m_initialDistance = m_chassis->getTrackingWheels()->center->getDistanceTraveled();
 
     while (!m_linear->settled()) {
-        double linear = m_linear->calculate(m_chassis->getTrackingWheels()->center->getDistanceTraveled() - m_initialDistance);
-        double angular = (m_headingController != nullptr) ? m_headingController->calculate(m_chassis->getHeading()) : 0;
+        double linError = distance - (m_chassis->getTrackingWheels()->center->getDistanceTraveled() - m_initialDistance);
+        double angError = initialAngle - m_chassis->getHeading();
+        double linear = m_linear->calculate(linError);
+        double angular = (m_headingController != nullptr) ? m_headingController->calculate(angError) : 0;
 
-        // cap speed
-        angular = std::clamp(angular, -maxSpeed, maxSpeed);
-        m_chassis->setVoltage(linear + angular, linear - angular);
+        // cap linear speed to max
+        linear = std::clamp(linear, -maxSpeed, maxSpeed);
+
+        double lSpeed = linear + angular;
+        double rSpeed = linear - angular;
+
+        // ratio the speeds to respect the max speed
+        double speedRatio = std::max(std::abs(lSpeed), std::abs(rSpeed)) / maxSpeed;
+        if (speedRatio > 1) {
+            lSpeed /= speedRatio;
+            rSpeed /= speedRatio;
+        }
+
+        m_chassis->setVoltage(lSpeed, rSpeed);
 
         // delay
         pros::delay(MOTION_TIMESTEP);
     }
 
     m_chassis->brake();
+}
+
+void MotionController::drive(Point target, double maxSpeed) {
+    // calc distance and angle errors
+    Point initial = { m_chassis->getPose().x, m_chassis->getPose().y };
+
+    // get distance and angle to point
+    double dist = calc::distance(initial, target);
+    double angle = math::wrap180(calc::angleDifference(initial, target) - m_chassis->getHeading());
+
+    double totalDist = dist;
+
+    // tips: disable turning when close to the target (within a few inches) and multiply lateral error by cos(ang error)
+
+    // set PID targets
+    m_linear->setTarget(dist);
+    m_angular->setTarget(angle);
+
+    // update!
+    while (!m_linear->settled()) {
+        Point current = { m_chassis->getPose().x, m_chassis->getPose().y };
+
+        dist = calc::distance(current, target);
+        angle = math::wrap180(calc::angleDifference(current, target) - m_chassis->getHeading());
+
+        dist *= cos(angle);
+
+        double distOutput = m_linear->calculate(dist);
+        double angOutput = m_angular->calculate(angle);
+
+        // if we are physically close and the total movement was somewhat large, we can disable turning
+        // the 7.5 is from lemlib, which I'm basing this on
+        bool closeToTarget = (totalDist > 7.5 && calc::distance(current, target) < 7.5);
+        if (closeToTarget) angOutput = 0;
+
+        // cap the linear speeds
+        distOutput = std::clamp(distOutput, -maxSpeed, maxSpeed);
+
+        // calculate speeds
+        double lSpeed = distOutput + angOutput;
+        double rSpeed = distOutput - angOutput;
+
+        // limit the speeds to respect max speed
+        double speedRatio = std::max(std::abs(lSpeed), std::abs(rSpeed)) / maxSpeed;
+        if (speedRatio > 1) {
+            lSpeed /= speedRatio;
+            rSpeed /= speedRatio;
+        }
+
+        // set the speeds
+        m_chassis->setVoltage(lSpeed, rSpeed);
+
+        // delay
+        pros::delay(MOTION_TIMESTEP);
+    }
 }
 
 // turn
@@ -55,7 +125,7 @@ void MotionController::turn(double angle, double maxSpeed, bool relative) {
     }
 
     while (!m_angular->settled()) {
-        double output = m_angular->calculate(m_chassis->getHeading());
+        double output = m_angular->calculate(angle - m_chassis->getHeading());
         output = std::clamp(output, -maxSpeed, maxSpeed);
         m_chassis->setVoltage(output, -output);
     }
@@ -64,5 +134,12 @@ void MotionController::turn(double angle, double maxSpeed, bool relative) {
 
     // delay
     pros::delay(MOTION_TIMESTEP);
+}
+
+void MotionController::turn(Point target, double maxSpeed) {
+    // calculate angle to the point
+    Pose p = m_chassis->getPose();
+    double angle = math::wrap180(calc::angleDifference({ p.x, p.y }, target) - p.theta);
+    turn(angle, maxSpeed);
 }
 }

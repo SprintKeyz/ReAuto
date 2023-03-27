@@ -14,8 +14,8 @@ void BangBangController::setTarget(double target) {
     m_error = target;
 }
 
-double BangBangController::calculate(double current) {
-    m_error = m_target - current;
+double BangBangController::calculate(double error) {
+    m_error = error;
 
     if (fabs(m_error) > m_exitError) {
         if (m_error > 0) {
