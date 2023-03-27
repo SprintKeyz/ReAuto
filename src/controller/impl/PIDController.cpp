@@ -1,0 +1,127 @@
+#include "reauto/controller/impl/PIDController.hpp"
+#include "reauto/chassis/impl/MotionChassis.hpp"
+#include "reauto/motion/Slew.hpp"
+#include "pros/apix.h"
+
+#include <cmath>
+
+namespace reauto {
+namespace controller {
+PIDController::PIDController(std::vector<IPIDConstants> constants, PIDExits exits, double pStartI, double slew): m_constantTable(constants) {
+    m_exits = exits;
+    m_slew = slew;
+    m_pStartI = pStartI;
+}
+
+PIDController::PIDController(PIDConstants constants, PIDExits exits, double pStartI, double slew): m_constantTable({ {constants.kP, constants.kI, constants.kD, 0} }) {
+    m_exits = exits;
+    m_slew = slew;
+    m_pStartI = pStartI;
+}
+
+void PIDController::resetController() {
+    m_prevError = 0;
+    m_integral = 0;
+    m_derivative = 0;
+    m_smallErrorTimer = 0;
+    m_largeErrorTimer = 0;
+    m_velocityTimer = 0;
+    m_lastOutput = 0;
+    m_lastTime = 0;
+}
+
+void PIDController::resetErrors() {
+    m_smallErrorTimer = 0;
+    m_largeErrorTimer = 0;
+    m_velocityTimer = 0;
+}
+
+void PIDController::setTarget(double target) {
+    m_constants = m_constantTable.get(target);
+    m_target = target;
+    m_error = target;
+    resetController();
+}
+
+double PIDController::calculate(double current) {
+    // time is current millis - last millis
+    // we use this method to increase accuracy
+    m_error = m_target - current;
+
+    double dt = (m_lastTime == 0) ? MOTION_TIMESTEP : pros::millis() - m_lastTime;
+
+    // divide by 1000 to get seconds
+    m_integral += m_error * (dt / 1000);
+    m_derivative = m_error - m_prevError;
+
+    if (m_pStartI != 0 && fabs(m_error) > m_pStartI) {
+        m_integral = 0;
+    }
+
+    if (std::signbit(m_error) != std::signbit(m_prevError)) {
+        m_integral = 0;
+    }
+
+    m_prevError = m_error;
+    m_lastTime = pros::millis();
+
+    double output = (m_error * m_constants.kP) + (m_integral * m_constants.kI) + (m_derivative * m_constants.kD);
+
+    if (m_slew != 0) {
+        util::slew(m_lastOutput, output, m_slew);
+    }
+
+    m_lastOutput = output;
+
+    return output;
+}
+
+bool PIDController::settled() {
+    // check small error
+    if (fabs(m_error) <= m_exits.smallError) {
+        m_smallErrorTimer += MOTION_TIMESTEP;
+        m_largeErrorTimer = 0;
+
+        if (m_smallErrorTimer >= m_exits.smallTime) {
+            resetErrors();
+            return true;
+        }
+    }
+
+    else {
+        m_smallErrorTimer = 0;
+    }
+
+    // check large error
+    if (fabs(m_error) <= m_exits.largeError) {
+        m_largeErrorTimer += MOTION_TIMESTEP;
+        m_smallErrorTimer = 0;
+
+        if (m_largeErrorTimer >= m_exits.largeTime) {
+            resetErrors();
+            return true;
+        }
+    }
+
+    else {
+        m_largeErrorTimer = 0;
+    }
+
+    // check velocity
+    if (fabs(m_derivative) <= 0.1) {
+        m_velocityTimer += MOTION_TIMESTEP;
+
+        if (m_velocityTimer >= m_exits.velocityTimeout) {
+            resetErrors();
+            return true;
+        }
+    }
+
+    else {
+        m_velocityTimer = 0;
+    }
+
+    return false;
+}
+}
+}

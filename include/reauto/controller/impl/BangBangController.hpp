@@ -1,19 +1,18 @@
-#include "reauto/chassis/impl/MotionChassis.hpp"
-#include "reauto/controller/FeedbackController.hpp"
-
 #pragma once
+
+#include "reauto/controller/FeedbackController.hpp"
 
 namespace reauto {
 namespace controller {
 class BangBangController: public FeedbackController {
 public:
-    BangBangController(std::shared_ptr<MotionChassis> chassis);
+    BangBangController(double exitError = 0.5);
 
     // set the controller target
     void setTarget(double target) override;
 
     // calculate the controller output
-    double calculate(double error) override;
+    double calculate(double current) override;
 
     // check if the controller is settled
     bool settled() override;
@@ -22,7 +21,9 @@ public:
     // this always returns -127 or 127
 
 private:
-    std::shared_ptr<MotionChassis> m_chassis;
+    double m_target;
+    double m_error;
+    double m_exitError;
 };
 }
 }

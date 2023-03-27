@@ -4,27 +4,18 @@
 #include "reauto/chassis/base/MecanumBase.hpp"
 #include "reauto/chassis/base/TankBase.hpp"
 #include "reauto/chassis/template/RobotTemplate.hpp"
+#include "reauto/datatypes/Pose.h"
 #include "reauto/device/MotorSet.hpp"
 #include "reauto/chassis/impl/HolonomicMode.hpp"
 #include "reauto/device/ADIMU.hpp"
 #include "reauto/device/TrackingWheel.hpp"
+#include "reauto/odom/TrackingWheels.hpp"
+#include "reauto/odom/Odometry.hpp"
 #include <initializer_list>
 
+#define MOTION_TIMESTEP 10
+
 namespace reauto {
-enum class TrackingConfiguration {
-    LRB, // left, right, back
-    CB, // center, back
-    LR // left, right
-};
-
-struct TrackingWheels {
-    std::shared_ptr<device::TrackingWheel> left = nullptr;
-    std::shared_ptr<device::TrackingWheel> right = nullptr;
-    std::shared_ptr<device::TrackingWheel> center = nullptr;
-    std::shared_ptr<device::TrackingWheel> back = nullptr;
-    TrackingConfiguration config;
-};
-
 class MotionChassis {
 public:
     // this is the ONLY constructor that should be used
@@ -91,6 +82,21 @@ public:
     // update the chassis arcade drive with joystick values
     void arcade(double speedScale = 127);
 
+    // get the current heading
+    double getHeading() const;
+
+    // set the current heading (0 to 360)
+    void setHeading(double deg);
+
+    // get the robot pose
+    Pose getPose() const;
+
+    // set the robot pose
+    void setPose(Pose p);
+
+    // get the tracking wheels
+    TrackingWheels* getTrackingWheels() const;
+
 private:
     // base robot drivetrain
     std::shared_ptr<RobotTemplate> m_robot;
@@ -130,5 +136,9 @@ private:
     double m_currentRightVoltage;
 
     double calcExponentialDrive(double input);
+
+    // odometry object!
+    std::shared_ptr<Odometry> m_odom;
+    Pose m_pose = { 0, 0, 0 };
 };
 }

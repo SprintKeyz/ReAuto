@@ -86,6 +86,11 @@ void MotionChassis::init() {
     if (m_trackingWheels->left != nullptr) m_trackingWheels->left->reset();
     if (m_trackingWheels->right != nullptr) m_trackingWheels->right->reset();
 
+    // odometry
+    m_odom = std::make_shared<Odometry>(m_trackingWheels.get(), m_imu.get());
+    m_odom->resetPosition();
+    m_odom->startTracking();
+
     // done!
     std::cout << "[ReAuto] Init complete!" << std::endl;
 }
@@ -244,5 +249,27 @@ void MotionChassis::arcade(double speedScale) {
     // update the current voltage values
     m_currentLeftVoltage = left;
     m_currentRightVoltage = right;
+}
+
+double MotionChassis::getHeading() const {
+    // wrapped [-180, 180] by default
+    return m_imu->getHeading();
+}
+
+void MotionChassis::setHeading(double deg) {
+    m_imu->setHeading(deg);
+    m_pose.theta = math::wrap180(deg);
+}
+
+Pose MotionChassis::getPose() const {
+    return m_pose;
+}
+
+void MotionChassis::setPose(Pose p) {
+    m_pose = p;
+}
+
+TrackingWheels* MotionChassis::getTrackingWheels() const {
+    return m_trackingWheels.get();
 }
 }

@@ -1,8 +1,8 @@
 #include "main.h"
 #include "pros/abstract_motor.hpp"
 #include "reauto/chassis/ChassisBuilder.hpp"
-#include "reauto/chassis/impl/MotionChassis.hpp"
-#include "reauto/controller/BangBangController.hpp"
+#include "reauto/controller/MotionController.hpp"
+#include "reauto/controller/impl/PIDController.hpp"
 
 /**
  * A callback function for LLEMU's center button.
@@ -28,7 +28,12 @@ reauto::ChassisBuilder<HolonomicMode::MECANUM>()
 .trackingWheels({ 12, 2 }, { 13, 5 }, 2.75, true)
 .build();
 
-reauto::controller::BangBangController bangBang(chassis);
+reauto::controller::PIDController lin({ 1, 1, 1 }, { 1, 2, 150, 250, 250 });
+reauto::controller::PIDController ang({ 1, 1, 1 }, { 1, 2, 150, 250, 250 });
+
+std::shared_ptr<reauto::MotionController> chassisController = std::make_shared<reauto::MotionController>(chassis, &lin, &ang, 6.0);
+
+
 // MotionController motionController(bangbang, bangbangangular);
 // motionController.drive();
 // motionCOntroller.turn();
@@ -36,6 +41,7 @@ reauto::controller::BangBangController bangBang(chassis);
 void initialize() {
   // chassis->strafe(80, 100);
   chassis->init();
+  chassisController->drive(10);
 }
 
 /**
@@ -87,5 +93,5 @@ void opcontrol() {
   chassis->setDriveExponent(3);
   chassis->setDriveMaxSpeed(127);
 
-  chassis->tank(127);
+  chassis->tank(100);
 }

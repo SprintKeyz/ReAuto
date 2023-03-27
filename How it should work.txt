@@ -59,10 +59,10 @@ using feedback
 - PIDController
 	- implement functions
 	- ctor takes gains
-	- ctor takes ptr to feedback chassis
 	- ctor takes exit conditions
 
 - MotionController
+	- takes in ptr to feedback chassis
 	- takes in linear, angular controllers
 
 ex:
