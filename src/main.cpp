@@ -1,8 +1,6 @@
 #include "main.h"
 #include "pros/abstract_motor.hpp"
-#include "reauto/chassis/ChassisBuilder.hpp"
-#include "reauto/controller/MotionController.hpp"
-#include "reauto/controller/impl/PIDController.hpp"
+#include "reauto/api.hpp"
 
 /**
  * A callback function for LLEMU's center button.
@@ -20,7 +18,7 @@
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
-std::shared_ptr<reauto::MotionChassis> chassis =
+auto chassis =
 reauto::ChassisBuilder<HolonomicMode::MECANUM>()
 .motors({ 1, 2 }, { 3, 4 }, pros::Motor_Gears::blue)
 .controller(master)
