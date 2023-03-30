@@ -9,7 +9,7 @@
 #include "reauto/chassis/impl/HolonomicMode.hpp"
 #include "reauto/device/ADIMU.hpp"
 #include "reauto/device/TrackingWheel.hpp"
-#include "reauto/odom/TrackingWheels.hpp"
+#include "reauto/device/TrackingWheels.hpp"
 #include "reauto/odom/Odometry.hpp"
 #include <initializer_list>
 

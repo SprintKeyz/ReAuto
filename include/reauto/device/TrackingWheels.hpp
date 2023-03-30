@@ -2,6 +2,9 @@
 
 #include "reauto/device/TrackingWheel.hpp"
 
+// not technically a device, but it's a collection of devices
+// plus it was under "odom" previously which it definitely should not have been
+
 namespace reauto {
 enum class TrackingConfiguration {
     LRB, // left, right, back

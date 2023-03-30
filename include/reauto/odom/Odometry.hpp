@@ -5,7 +5,7 @@
 #include "reauto/math/Convert.hpp"
 #include "pros/apix.h"
 #include "reauto/device/TrackingWheel.hpp"
-#include "reauto/odom/TrackingWheels.hpp"
+#include "reauto/device/TrackingWheels.hpp"
 #include <iostream>
 #include <cmath>
 

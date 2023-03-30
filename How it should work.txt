@@ -63,7 +63,7 @@ using feedback
 
 - MotionController
 	- takes in ptr to feedback chassis
-	- takes in linear, angular controllers
+	- takes in linear, angular controllers and an optional third heading correct PID controller
 
 ex:
 
@@ -130,10 +130,17 @@ ex:
 new TrapezoidalProfile(velcontroller, {maxV, maxA}, {kV, kA}) linear
 
 p->compute(10_in)
-p->compute(10_in, 
+p->compute(10_in, 100_in/s, 100_in/s^2)
+p->follow()
 
+PurePursuitController(AsyncMotionController) pp;
+pp->setPath(path)
+pp->follow()
 
-
+pure pursuit internally:
+- should be able to update the target continuously
+- derivative should not be an over time thing (can be reset constantly)
+- integral should not add up over the path
 ---
 
 
@@ -154,3 +161,10 @@ we'll leave this to only support tank and mecahnum for now, but I'll leave the b
 OK. Let's rethink this.
 
 
+----
+
+Pure Pursuit:
+
+Waypoints used INTERNALLY only.
+
+Users create paths with poses. x=x, y=y, theta=max speed at point

@@ -39,7 +39,10 @@ std::shared_ptr<reauto::MotionController> chassisController = std::make_shared<r
 void initialize() {
   // chassis->strafe(80, 100);
   chassis->init();
-  chassisController->drive(10);
+  chassisController->drive(10_in);
+  chassisController->drive({ 10, 10 });
+  chassisController->turn(90_deg);
+  chassisController->turn({ 10, 10 });
 }
 
 /**
