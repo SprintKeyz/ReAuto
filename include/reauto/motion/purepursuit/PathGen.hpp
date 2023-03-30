@@ -22,15 +22,15 @@ namespace reauto
 class PurePursuitGenerator {
 public:
     PurePursuitGenerator() = default;
-    std::vector<Waypoint> injectPoints(std::vector<Waypoint> points, double spacing = 6);
+    void injectPoints(std::vector<Waypoint>& points, double spacing = 6);
     // smoother should take in a value between 0.75 and 0.98 (lower is more accurate to the original path)
-    std::vector<Waypoint> smoothPath(std::vector<Waypoint> points, double smoothing = 0.81);
+    void smoothPath(std::vector<Waypoint>& points, double smoothing = 0.81);
     // calculate the distance to each waypoint
-    std::vector<Waypoint> calculateDistances(std::vector<Waypoint> points);
+    void calculateDistances(std::vector<Waypoint>& points);
     // calculate the curvature of each waypoint on the path
-    std::vector<Waypoint> calculateCurvatures(std::vector<Waypoint> points);
+    void calculateCurvatures(std::vector<Waypoint>& points);
     // calculate the velocity of each waypoint on the path
-    std::vector<Waypoint> calculateVelocities(std::vector<Waypoint> points, PathConstraints constraints);
+    void calculateVelocities(std::vector<Waypoint>& points, PathConstraints constraints);
 
     // final calculation of the path
     std::vector<Waypoint> generatePath(std::vector<Pose> points, PathConstraints constraints, double spacing = 6, double smoothing = 0.81);

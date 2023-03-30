@@ -7,7 +7,7 @@
 
 namespace reauto
 {
-std::vector<Waypoint> PurePursuitGenerator::injectPoints(std::vector<Waypoint> points, double spacing)
+void PurePursuitGenerator::injectPoints(std::vector<Waypoint>& points, double spacing)
 {
     std::vector<Waypoint> newPoints;
 
@@ -37,10 +37,10 @@ std::vector<Waypoint> PurePursuitGenerator::injectPoints(std::vector<Waypoint> p
 
     // add the last point
     newPoints.push_back(points[points.size() - 1]);
-    return newPoints;
+    points = newPoints;
 }
 
-std::vector<Waypoint> PurePursuitGenerator::smoothPath(std::vector<Waypoint> points, double smoothing) {
+void PurePursuitGenerator::smoothPath(std::vector<Waypoint>& points, double smoothing) {
     // adapted from team 2618's code
     std::vector<Waypoint> newPath = points;
 
@@ -61,23 +61,19 @@ std::vector<Waypoint> PurePursuitGenerator::smoothPath(std::vector<Waypoint> poi
         }
     }
 
-    return newPath;
+    points = newPath;
 }
 
-std::vector<Waypoint> PurePursuitGenerator::calculateDistances(std::vector<Waypoint> points) {
-    std::vector<Waypoint> newPoints = points;
-
-    for (int i = 0; i < newPoints.size() - 1; i++) {
-        Waypoint p1 = newPoints[i];
-        Waypoint p2 = newPoints[i + 1];
+void PurePursuitGenerator::calculateDistances(std::vector<Waypoint>& points) {
+    for (int i = 0; i < points.size() - 1; i++) {
+        Waypoint p1 = points[i];
+        Waypoint p2 = points[i + 1];
 
         Waypoint vect = { p2.x - p1.x, p2.y - p1.y };
         double magnitude = sqrt(pow(vect.x, 2) + pow(vect.y, 2));
 
-        newPoints[i].distance = magnitude;
+        points[i].distance = magnitude;
     }
-
-    return newPoints;
 }
 
 double wDist(Waypoint p1, Waypoint p2) {
@@ -99,7 +95,51 @@ double calcPointCurvature(Waypoint prev, Waypoint curr, Waypoint next) {
     return std::pow(curvature, 2);
 }
 
-std::vector<Waypoint> PurePursuitGenerator::calculateCurvatures(std::vector<Waypoint> points) {
-    
+void PurePursuitGenerator::calculateCurvatures(std::vector<Waypoint>& points) {
+    points[0].curvature = 0.0;
+
+    for (int i = 1; i < points.size() - 1; i++) {
+        points[i].curvature = calcPointCurvature(points[i - 1], points[i], points[i + 1]);
+    }
+}
+
+void calculateVelocities(std::vector<Waypoint>& points, PathConstraints constraints) {
+    points.back().velocity = constraints.endVel;
+
+    for (int i=points.size() - 1; i > 0; i--) {
+        Waypoint start = points[i];
+        Waypoint end = points[i - 1];
+
+        // if the user knows "better", we'll listen
+        if (start.velocity != 0) {
+            continue;
+        }
+
+        double desiredVel = constraints.turnK ? std::min(constraints.maxVel, constraints.turnK / points[i].curvature) : constraints.maxVel;
+        double dist = wDist(start, end);
+
+        // solve for final velocity
+        double maxAttainableVel = std::sqrt(pow(start.velocity, 2) + (2.0 * constraints.decelLimit * dist));
+
+        double vel = std::min(desiredVel, maxAttainableVel);
+        end.velocity = vel;
+    }
+}
+
+std::vector<Waypoint> PurePursuitGenerator::generatePath(std::vector<Pose> points, PathConstraints constraints, double spacing, double smoothing) {
+    std::vector<Waypoint> waypoints;
+
+    for (Pose p : points) {
+        if (p.theta == 361) p.theta = 0;
+        waypoints.push_back({ p.x, p.y, 0, p.theta, 0 });
+    }
+
+    injectPoints(waypoints, spacing);
+    smoothPath(waypoints, smoothing);
+    calculateDistances(waypoints);
+    calculateCurvatures(waypoints);
+    calculateVelocities(waypoints, constraints);
+
+    return waypoints;
 }
 }
