@@ -122,7 +122,7 @@ for i in range(1, len(Waypoints)-1):
 
     k2 = (Waypoints[i-1].y - Waypoints[i].y) / \
         (Waypoints[i-1].x - Waypoints[i].x)
-
+        
     b = 0.5 * (Waypoints[i].x**2 - 2 * Waypoints[i].x * k1 + Waypoints[i].y**2 - Waypoints[i+1].x**2 + 2 * Waypoints[i+1].x * k1 - Waypoints[i+1].y**2) / \
         (Waypoints[i+1].x * k2 - Waypoints[i+1].y +
          Waypoints[i].y - Waypoints[i].x * k2)

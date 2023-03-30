@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "reauto/datatypes/Pose.h"
+#include "reauto/datatypes/PathConstraints.h"
 
 // ReAuto pure pursuit path generator
 // this takes in a set of points and generates a completed path
@@ -27,11 +28,11 @@ public:
     // calculate the distance to each waypoint
     std::vector<Waypoint> calculateDistances(std::vector<Waypoint> points);
     // calculate the curvature of each waypoint on the path
-    std::vector<Waypoint> calculateCurvature(std::vector<Waypoint> points);
+    std::vector<Waypoint> calculateCurvatures(std::vector<Waypoint> points);
     // calculate the velocity of each waypoint on the path
-    std::vector<Waypoint> calculateVelocity(std::vector<Waypoint> points, double maxVelocity = 127, double maxAcceleration = 127);
+    std::vector<Waypoint> calculateVelocities(std::vector<Waypoint> points, PathConstraints constraints);
 
     // final calculation of the path
-    std::vector<Waypoint> calculatePath(std::vector<Pose> points, double spacing = 6, double smoothing = 0.81, double maxVelocity = 127, double maxAcceleration = 127);
+    std::vector<Waypoint> generatePath(std::vector<Pose> points, PathConstraints constraints, double spacing = 6, double smoothing = 0.81);
 };
 }

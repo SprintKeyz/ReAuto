@@ -1,6 +1,9 @@
 #include "reauto/motion/purepursuit/PathGen.hpp"
 
+#include <chrono>
 #include <cmath>
+#include <cstdlib>
+#include <sys/timespec.h>
 
 namespace reauto
 {
@@ -75,5 +78,28 @@ std::vector<Waypoint> PurePursuitGenerator::calculateDistances(std::vector<Waypo
     }
 
     return newPoints;
+}
+
+double wDist(Waypoint p1, Waypoint p2) {
+    return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2));
+}
+
+double calcPointCurvature(Waypoint prev, Waypoint curr, Waypoint next) {
+    double distOne = wDist(curr, prev);
+    double distTwo = wDist(curr, next);
+    double distThree = wDist(next, prev);
+    
+    double sidesProduct = distOne * distTwo * distThree;
+    double semiPerim = (distOne + distTwo + distThree) / 2.0;
+    
+    double triangleArea = sqrt(semiPerim * (semiPerim - distOne) * (semiPerim - distTwo) * (semiPerim - distThree));
+    
+    double rad = sidesProduct / (4 * triangleArea);
+    double curvature = std::isnormal(1.0 / rad) ? 1.0 / rad : 0;
+    return std::pow(curvature, 2);
+}
+
+std::vector<Waypoint> PurePursuitGenerator::calculateCurvatures(std::vector<Waypoint> points) {
+    
 }
 }
