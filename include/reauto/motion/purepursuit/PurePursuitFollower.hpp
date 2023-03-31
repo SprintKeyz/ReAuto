@@ -24,6 +24,6 @@ private:
 
     // functions
     int closestPoint(Pose current, std::string name);
-    Pose calculateTarget(Pose prevLookahad, Pose current, std::string name);
+    Pose calculateLookahead(Pose prevLookahad, Pose current, std::string name);
 };
 }
