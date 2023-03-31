@@ -20,10 +20,18 @@ public:
 private:
     std::shared_ptr<MotionChassis> m_chassis;
     std::map<std::string, std::vector<Waypoint>> m_paths;
+    PathConstraints m_constraints;
+
     double m_lookahead = 6;
+    int m_lastClosest = 0; // should be an ITERATOR <------
+    int m_lastLookaheadIndex = 0;
+    int m_lastLookaheadT = 0;
 
     // functions
-    int closestPoint(Pose current, std::string name);
-    Pose calculateLookahead(Pose prevLookahad, Pose current, std::string name);
+    int findClosestPoint(std::vector<Waypoint> path, Pose currentPose);
+    Pose findLookaheadPoint(std::string pathName);
+    double calculateCurvature(Pose lookaheadPoint);
+    std::pair<double, double> calculateWheelSpeeds(double velocity, double curvature);
+    void reset();
 };
 }

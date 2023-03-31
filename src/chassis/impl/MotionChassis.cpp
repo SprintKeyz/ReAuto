@@ -69,9 +69,11 @@ MotionChassis::MotionChassis(
         break;
     }
 
-    m_trackWidth = trackWidth;
-    m_wheelDiameter = wheelDiameter;
-    m_gearRatio = gearRatio;
+    m_measurements = {trackWidth, wheelDiameter, gearRatio};
+}
+
+RobotMeasurements MotionChassis::getMeasurements() const {
+    return m_measurements;
 }
 
 void MotionChassis::init() {

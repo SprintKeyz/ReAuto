@@ -16,6 +16,12 @@
 #define MOTION_TIMESTEP 10
 
 namespace reauto {
+struct RobotMeasurements {
+    double trackWidth;
+    double wheelDiameter;
+    double gearRatio;
+};
+
 class MotionChassis {
 public:
     // this is the ONLY constructor that should be used
@@ -97,6 +103,8 @@ public:
     // get the tracking wheels
     TrackingWheels* getTrackingWheels() const;
 
+    RobotMeasurements getMeasurements() const;
+
 private:
     // base robot drivetrain
     std::shared_ptr<RobotTemplate> m_robot;
@@ -112,9 +120,7 @@ private:
     std::shared_ptr<TrackingWheels> m_trackingWheels;
 
     // robot hardware measurements
-    double m_trackWidth = 0;
-    double m_wheelDiameter = 0;
-    double m_gearRatio = 0;
+    RobotMeasurements m_measurements;
 
     // for driver control
     double m_slewStep = 0;
