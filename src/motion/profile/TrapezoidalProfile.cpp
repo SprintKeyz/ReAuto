@@ -2,9 +2,10 @@
 #include <cmath>
 
 namespace reauto {
-TrapezoidalProfile::TrapezoidalProfile(std::shared_ptr<MotionChassis> chassis, TrapezoidalProfileConstants constants) {
+TrapezoidalProfile::TrapezoidalProfile(std::shared_ptr<MotionChassis> chassis, TrapezoidalProfileConstants constants, std::shared_ptr<controller::PIDController> headingCorrectController) {
     m_chassis = chassis;
     m_constants = constants;
+    m_headingCorrector = headingCorrectController;
 }
 
 void TrapezoidalProfile::compute(double target, double maxV, double maxA)
@@ -85,6 +86,13 @@ void TrapezoidalProfile::followLinear() {
     double initialDist = m_chassis->getTrackingWheels()->center->getDistanceTraveled();
     double lastTime = 0;
 
+    // if heading correct
+    double initialAngle = m_chassis->getHeading();
+
+    if (m_headingCorrector != nullptr) {
+        m_headingCorrector->setTarget(initialAngle);
+    }
+
     while (!m_profile.isConcluded(time)) {
         MotionProfileData setpoint = m_profile.get(time);
 
@@ -100,11 +108,23 @@ void TrapezoidalProfile::followLinear() {
         // controller output
         double feedbackOutput = m_constants.kP * error + m_constants.kD * deriv;
 
+        // calculate heading correction
+        double angular = (m_headingCorrector != nullptr) ? m_headingCorrector->calculate(initialAngle - m_chassis->getHeading()) : 0;
+
         // calculate output
         double output = (setpoint.velocity * m_constants.kVelocityScale + setpoint.acceleration * m_constants.kAccelerationScale) + feedbackOutput;
+        double left = output + angular;
+        double right = output - angular;
 
-        // spin motors
-        m_chassis->setVoltage(output, output);
+        // calculate max speed and ratio the outputs
+        double max = std::max(std::abs(left), std::abs(right));
+        if (max > 1) {
+            left /= max;
+            right /= max;
+        }
+
+        // set voltage
+        m_chassis->setVoltage(left, right);
 
         prevError = error;
         lastTime = pros::millis();
@@ -114,4 +134,9 @@ void TrapezoidalProfile::followLinear() {
 
     m_chassis->brake();
 }
+
+void TrapezoidalProfile::followAngular() {
+
+}
+
 }

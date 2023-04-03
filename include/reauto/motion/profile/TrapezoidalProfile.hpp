@@ -19,7 +19,7 @@ struct TrapezoidalProfileConstants {
 
 class TrapezoidalProfile {
 public:
-    TrapezoidalProfile(std::shared_ptr<MotionChassis> chassis, TrapezoidalProfileConstants constants);
+    TrapezoidalProfile(std::shared_ptr<MotionChassis> chassis, TrapezoidalProfileConstants constants, std::shared_ptr<controller::PIDController> headingCorrectController = nullptr);
 
     // compute the profile for a distance
     void compute(double target, double maxV = 0, double maxA = 0);
@@ -30,6 +30,7 @@ public:
 
 private:
     std::shared_ptr<MotionChassis> m_chassis;
+    std::shared_ptr<controller::PIDController> m_headingCorrector;
     TrapezoidalProfileConstants m_constants;
 
     double m_target; // the current target

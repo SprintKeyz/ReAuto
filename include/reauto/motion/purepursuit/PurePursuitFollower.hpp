@@ -23,7 +23,8 @@ private:
     PathConstraints m_constraints;
 
     double m_lookahead = 6;
-    int m_lastClosest = 0; // should be an ITERATOR <------
+    // iterator to the last closest point
+    std::vector<Waypoint>::iterator m_lastClosest;
     int m_lastLookaheadIndex = 0;
     int m_lastLookaheadT = 0;
 

@@ -28,6 +28,22 @@ reauto::ChassisBuilder<>()
 .trackingWheels({ 12, 2 }, { 13, 5 }, 2.75, true)
 .build();
 
+PIDExits exits = {
+  0.1,
+  0,
+  120,
+  0,
+  150,
+};
+
+PIDConstants hK = {
+  0.1,
+  0,
+  0,
+};
+
+auto headingController = std::make_shared<reauto::controller::PIDController>(hK, exits);
+
 reauto::TrapezoidalProfileConstants k = {
   12,
   2.5,
@@ -37,7 +53,7 @@ reauto::TrapezoidalProfileConstants k = {
   8
 };
 
-std::shared_ptr<reauto::TrapezoidalProfile> profile = std::make_shared<reauto::TrapezoidalProfile>(chassis, k);
+std::shared_ptr<reauto::TrapezoidalProfile> profile = std::make_shared<reauto::TrapezoidalProfile>(chassis, k, headingController);
 
 void initialize() {
   // chassis->strafe(80, 100);
