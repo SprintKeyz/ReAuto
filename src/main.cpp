@@ -1,6 +1,8 @@
 #include "main.h"
 #include "pros/abstract_motor.hpp"
 #include "reauto/api.hpp"
+#include "reauto/motion/profile/MotionProfile.hpp"
+#include "reauto/motion/profile/TrapezoidalProfile.hpp"
 
 /**
  * A callback function for LLEMU's center button.
@@ -19,30 +21,27 @@
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
 auto chassis =
-reauto::ChassisBuilder<HolonomicMode::MECANUM>()
+reauto::ChassisBuilder<>()
 .motors({ 1, 2 }, { 3, 4 }, pros::Motor_Gears::blue)
 .controller(master)
 .imu(8, 9)
 .trackingWheels({ 12, 2 }, { 13, 5 }, 2.75, true)
 .build();
 
-reauto::controller::PIDController lin({ 1, 1, 1 }, { 1, 2, 150, 250, 250 });
-reauto::controller::PIDController ang({ 1, 1, 1 }, { 1, 2, 150, 250, 250 });
+reauto::TrapezoidalProfileConstants k = {
+  12,
+  2.5,
+  4,
+  1.57,
+  31.5,
+  8
+};
 
-std::shared_ptr<reauto::MotionController> chassisController = std::make_shared<reauto::MotionController>(chassis, &lin, &ang, 6.0);
-
-
-// MotionController motionController(bangbang, bangbangangular);
-// motionController.drive();
-// motionCOntroller.turn();
+std::shared_ptr<reauto::TrapezoidalProfile> profile = std::make_shared<reauto::TrapezoidalProfile>(chassis, k);
 
 void initialize() {
   // chassis->strafe(80, 100);
   chassis->init();
-  chassisController->drive(10_in);
-  chassisController->drive({ 10, 10 });
-  chassisController->turn(90_deg);
-  chassisController->turn({ 10, 10 });
 }
 
 /**
@@ -74,7 +73,13 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+  profile->compute(18_in);
+  profile->followLinear();
+
+  profile->compute(90_deg);
+  profile->followAngular();
+}
 
 /**
  * Runs the operator control code. This function will be started in its own task

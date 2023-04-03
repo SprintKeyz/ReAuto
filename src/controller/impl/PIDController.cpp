@@ -50,9 +50,12 @@ double PIDController::calculate(double error) {
 
     double dt = (m_lastTime == 0) ? MOTION_TIMESTEP : pros::millis() - m_lastTime;
 
-    // divide by 1000 to get seconds
-    m_integral += m_error * (dt / 1000);
-    m_derivative = m_error - m_prevError;
+    // this represents how much we are off by in time
+    // in a perfect world, this would be 1
+    double error_dt = dt / MOTION_TIMESTEP;
+
+    m_integral += m_error * error_dt;
+    m_derivative = (m_error - m_prevError) / error_dt;
 
     if (m_pStartI != 0 && fabs(m_error) > m_pStartI) {
         m_integral = 0;

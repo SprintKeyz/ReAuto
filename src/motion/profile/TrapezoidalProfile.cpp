@@ -1,0 +1,117 @@
+#include "reauto/motion/profile/TrapezoidalProfile.hpp"
+#include <cmath>
+
+namespace reauto {
+TrapezoidalProfile::TrapezoidalProfile(std::shared_ptr<MotionChassis> chassis, TrapezoidalProfileConstants constants) {
+    m_chassis = chassis;
+    m_constants = constants;
+}
+
+void TrapezoidalProfile::compute(double target, double maxV, double maxA)
+{
+    m_target = target;
+    m_maxVelocity = maxV == 0 ? m_constants.maxVelocity : maxV;
+    m_maxAcceleration = maxA == 0 ? m_constants.maxAcceleration : maxA;
+
+    // init some variables
+    double timeToMaxV = m_maxVelocity / m_maxAcceleration; // time to reach max velocity
+    double timeFromMaxV = 0; // time to start decelerating
+    double timeTotal = 0; // total time of the profile
+    double profileMaxV = 0; // the max velocity of the profile
+
+    std::vector<long> times = { 0 };
+    std::vector<double> positions = { 0 };
+    std::vector<double> velocities = { 0 };
+    std::vector<double> accelerations = { 0 };
+
+    double a = m_maxVelocity / timeToMaxV;
+    double timeAtMaxV = m_target / m_maxVelocity - timeToMaxV;
+
+    // check if the profile is a triangle or trapezoid
+    if (m_maxVelocity * timeToMaxV > m_target) {
+        // triangle profile
+        timeToMaxV = sqrt(m_target / a);
+        timeFromMaxV = timeToMaxV;
+        timeTotal = 2.0 * timeToMaxV;
+        profileMaxV = a * timeToMaxV;
+    }
+
+    else {
+        // trapezoid profile
+        timeFromMaxV = timeAtMaxV + timeToMaxV;
+        timeTotal = timeFromMaxV + timeToMaxV;
+        profileMaxV = m_maxVelocity;
+    }
+
+    while (times.back() < timeTotal) {
+        long time = times.back() + MOTION_TIMESTEP;
+        times.push_back(time);
+
+        if (time < timeToMaxV) {
+            // accelerate to max velocity
+            velocities.push_back(a * time);
+            accelerations.push_back(a);
+        }
+
+        else if (time < timeFromMaxV) {
+            // cruise
+            velocities.push_back(profileMaxV);
+            accelerations.push_back(0);
+        }
+
+        else if (time < timeTotal) {
+            // decelerate to 0
+            double decel_time = time - timeFromMaxV;
+            velocities.push_back(profileMaxV - a * decel_time);
+            accelerations.push_back(-a);
+        }
+
+        else {
+            // stop
+            velocities.push_back(0);
+            accelerations.push_back(0);
+        }
+
+        positions.push_back(positions.back() + velocities.back() * MOTION_TIMESTEP);
+    }
+
+    m_profile.setProfile(times, positions, velocities, accelerations);
+}
+
+void TrapezoidalProfile::followLinear() {
+    long time = 0;
+    double prevError = 0;
+
+    double initialDist = m_chassis->getTrackingWheels()->center->getDistanceTraveled();
+    double lastTime = 0;
+
+    while (!m_profile.isConcluded(time)) {
+        MotionProfileData setpoint = m_profile.get(time);
+
+        // get time error (for accuracy) - 1 is perfect
+        double dt = (lastTime == 0) ? MOTION_TIMESTEP : pros::millis() - lastTime;
+        double error_dt = dt / MOTION_TIMESTEP;
+
+        // integrate feedback
+        double current = m_chassis->getTrackingWheels()->center->getDistanceTraveled() - initialDist;
+        double error = setpoint.position - current;
+        double deriv = (error - prevError) / error_dt - setpoint.velocity;
+
+        // controller output
+        double feedbackOutput = m_constants.kP * error + m_constants.kD * deriv;
+
+        // calculate output
+        double output = (setpoint.velocity * m_constants.kVelocityScale + setpoint.acceleration * m_constants.kAccelerationScale) + feedbackOutput;
+
+        // spin motors
+        m_chassis->setVoltage(output, output);
+
+        prevError = error;
+        lastTime = pros::millis();
+        pros::delay(MOTION_TIMESTEP);
+        time += MOTION_TIMESTEP;
+    }
+
+    m_chassis->brake();
+}
+}
