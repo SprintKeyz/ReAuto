@@ -98,12 +98,12 @@ void TrapezoidalProfile::followLinear() {
 
         // get time error (for accuracy) - 1 is perfect
         double dt = (lastTime == 0) ? MOTION_TIMESTEP : pros::millis() - lastTime;
-        double error_dt = dt / MOTION_TIMESTEP;
+        // double error_dt = dt / MOTION_TIMESTEP; - doesn't work, can flip between <> 1
 
         // integrate feedback
         double current = m_chassis->getTrackingWheels()->center->getDistanceTraveled() - initialDist;
         double error = setpoint.position - current;
-        double deriv = (error - prevError) / error_dt - setpoint.velocity;
+        double deriv = (error - prevError) / (dt / 1000.0) - setpoint.velocity;
 
         // controller output
         double feedbackOutput = m_constants.kP * error + m_constants.kD * deriv;
