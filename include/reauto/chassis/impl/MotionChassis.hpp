@@ -138,8 +138,8 @@ private:
     pros::controller_analog_e_t m_turnChannel = pros::E_CONTROLLER_ANALOG_RIGHT_X;
 
     // for slew
-    double m_currentLeftVoltage;
-    double m_currentRightVoltage;
+    double m_currentLeftVoltage = 0;
+    double m_currentRightVoltage = 0;
 
     double calcExponentialDrive(double input);
 

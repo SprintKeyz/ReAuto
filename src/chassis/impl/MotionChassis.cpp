@@ -255,6 +255,7 @@ void MotionChassis::arcade(double speedScale) {
 
 double MotionChassis::getHeading() const {
     // wrapped [-180, 180] by default
+    std::cout << "getHeading: " << m_imu->getHeading() << std::endl;
     return m_imu->getHeading();
 }
 
@@ -264,10 +265,13 @@ void MotionChassis::setHeading(double deg) {
 }
 
 Pose MotionChassis::getPose() const {
-    return m_pose;
+    Point p = m_odom->getPosition();
+    return {p.x, p.y, m_imu->getHeading()};
 }
 
 void MotionChassis::setPose(Pose p) {
+    m_odom->setPosition({p.x, p.y});
+    m_imu->setHeading(p.theta);
     m_pose = p;
 }
 
