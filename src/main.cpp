@@ -33,7 +33,7 @@ pros::Motor cata(4);
 
 auto chassis =
     reauto::ChassisBuilder<>()
-        .motors({20, 6, -1}, {-5, -3, 2}, pros::Motor_Gears::blue)
+        .motors({-20, -6, 1}, {5, 3, -2}, pros::Motor_Gears::blue)
         .controller(master)
         .imu(7)
         .trackingWheels({12, 0.5}, {11, 4}, 2.75, true)
