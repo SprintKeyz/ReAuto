@@ -28,3 +28,6 @@
 #include "reauto/unit/AngleLiterals.hpp"
 #include "reauto/unit/DistanceLiterals.hpp"
 #include "reauto/unit/PowerLiterals.hpp"
+
+// include filters
+#include "reauto/filter/SMAFilter.hpp"

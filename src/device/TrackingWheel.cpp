@@ -1,5 +1,7 @@
 #include "reauto/device/TrackingWheel.hpp"
+#include "reauto/chassis/impl/MotionChassis.hpp"
 #include "reauto/math/Convert.hpp"
+#include "reauto/filter/SMAFilter.hpp"
 #include <map>
 
 // the conversion factors for our units
@@ -13,7 +15,7 @@ std::map<reauto::DistanceUnits, double> conversions = {
 
 namespace reauto {
 namespace device {
-TrackingWheel::TrackingWheel(const int8_t port, const double diam, const double dist): m_diam(diam), m_dist(dist), m_rotation(port, std::signbit(port)) {}
+TrackingWheel::TrackingWheel(const int8_t port, const double diam, const double dist): m_diam(diam), m_dist(dist), m_rotation(port, std::signbit(port)), m_filter(5) {}
 
 double TrackingWheel::getPosition(bool radians) const {
     double rotation = math::cdegToDeg(m_rotation.get_position());
@@ -36,6 +38,13 @@ double TrackingWheel::getDiameter() const {
 
 double TrackingWheel::getCenterDistance() const {
     return m_dist;
+}
+
+double TrackingWheel::getVelocity() {
+    double pos = getPosition();
+    double velocity = (pos - m_lastPos) / (MOTION_TIMESTEP / 1000.0);
+    velocity = m_filter.calculate(velocity);
+    return velocity;
 }
 }
 }

@@ -1,6 +1,7 @@
 #include "main.h"
 #include "pros/abstract_motor.hpp"
 #include "reauto/api.hpp"
+#include "reauto/filter/SMAFilter.hpp"
 #include "reauto/motion/profile/MotionProfile.hpp"
 #include "reauto/motion/profile/TrapezoidalProfile.hpp"
 
@@ -11,12 +12,12 @@
  * "I was pressed!" and nothing.
  */
 
-/**
- * Runs initialization code. This occurs as soon as the program is started.
- *
- * All other competition modes are blocked by initialize; it is recommended
- * to keep execution time for this mode under a few seconds.
- */
+ /**
+  * Runs initialization code. This occurs as soon as the program is started.
+  *
+  * All other competition modes are blocked by initialize; it is recommended
+  * to keep execution time for this mode under a few seconds.
+  */
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
@@ -32,13 +33,13 @@ pros::Motor cata(4);
 #define CATA_SPEED 127
 
 auto chassis =
-    reauto::ChassisBuilder<>()
-        .motors({-20, -6, 1}, {5, 3, -2}, pros::Motor_Gears::blue)
-        .controller(master)
-        .imu(7)
-        .trackingWheels({12, 0.5}, {11, 4}, 2.75, true)
-        .setTrackWidth(11.25_in)
-        .build();
+reauto::ChassisBuilder<>()
+.motors({ -20, -6, 1 }, { 5, 3, -2 }, pros::Motor_Gears::blue)
+.controller(master)
+.imu(7)
+.trackingWheels({ 12, 0.5 }, { 11, 4 }, 2.75, true)
+.setTrackWidth(11.25_in)
+.build();
 
 PIDExits exits = {
     0.1,
@@ -62,7 +63,7 @@ reauto::TrapezoidalProfileConstants k = {
     4,
     1.57,
     31.5,
-    8};
+    8 };
 
 std::shared_ptr<reauto::TrapezoidalProfile> profile = std::make_shared<reauto::TrapezoidalProfile>(chassis, k, headingController);
 
@@ -103,11 +104,11 @@ void competition_initialize() {}
  */
 void autonomous()
 {
-  profile->compute(18_in);
-  profile->followLinear();
+  //profile->compute(18_in);
+  //profile->followLinear();
 
-  profile->compute(90_deg);
-  profile->followAngular();
+  //profile->compute(90_deg);
+  //profile->followAngular();
 }
 
 /**
@@ -125,7 +126,7 @@ void autonomous()
  */
 void opcontrol()
 {
-  chassis->setSlewDrive(24.0, 5.0);
+  /*chassis->setSlewDrive(24.0, 5.0);
   chassis->setDriveExponent(3);
   chassis->setControllerDeadband(12);
   chassis->setDriveMaxSpeed(100_pct);
@@ -223,6 +224,15 @@ void opcontrol()
     }
 
     debug++;
+    pros::delay(15);
+  }*/
+
+  reauto::filter::SMAFilter filter(5);
+
+  while (true) {
+    chassis->tank();
+    double leftVel = chassis->getLeftVelocity();
+    std::cout << "Velocity: " << leftVel << std::endl;
     pros::delay(15);
   }
 }

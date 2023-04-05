@@ -109,7 +109,7 @@ BangBangController
 <here, we have the chance to impl more motion profiles / a base class>
 
 TrapezoidalProfile
-	- pass VELOCITY PID feedback controller
+	- pass PID feedback controller
 	- pass constraints
 	- pass gains
 	- set gains method

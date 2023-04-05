@@ -100,6 +100,10 @@ public:
     // set the robot pose
     void setPose(Pose p);
 
+    // get the left and right velocities
+    double getLeftVelocity() const;
+    double getRightVelocity() const;
+
     // get the tracking wheels
     TrackingWheels* getTrackingWheels() const;
 

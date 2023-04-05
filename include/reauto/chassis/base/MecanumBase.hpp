@@ -37,7 +37,6 @@ public:
 
     void setBrakeMode(pros::Motor_Brake mode) override;
     void brake() override;
-
     // get motors
     MotorSet* getLeftMotors() const;
     MotorSet* getRightMotors() const;

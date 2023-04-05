@@ -69,7 +69,7 @@ MotionChassis::MotionChassis(
         break;
     }
 
-    m_measurements = {trackWidth, wheelDiameter, gearRatio};
+    m_measurements = { trackWidth, wheelDiameter, gearRatio };
 }
 
 RobotMeasurements MotionChassis::getMeasurements() const {
@@ -130,6 +130,15 @@ void MotionChassis::setBrakeMode(pros::Motor_Brake mode) {
 void MotionChassis::brake() {
     m_robot->brake();
 }
+
+double MotionChassis::getLeftVelocity() const {
+    return m_trackingWheels->center->getVelocity();
+}
+
+double MotionChassis::getRightVelocity() const {
+    return m_trackingWheels->center->getVelocity();
+}
+
 
 void MotionChassis::setSlewDrive(double normal, double signChange) {
     m_slewStep = normal;
@@ -266,11 +275,11 @@ void MotionChassis::setHeading(double deg) {
 
 Pose MotionChassis::getPose() const {
     Point p = m_odom->getPosition();
-    return {p.x, p.y, m_imu->getHeading()};
+    return { p.x, p.y, m_imu->getHeading() };
 }
 
 void MotionChassis::setPose(Pose p) {
-    m_odom->setPosition({p.x, p.y});
+    m_odom->setPosition({ p.x, p.y });
     m_imu->setHeading(p.theta);
     m_pose = p;
 }

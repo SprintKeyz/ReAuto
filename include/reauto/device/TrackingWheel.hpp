@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pros/rotation.hpp"
+#include "reauto/filter/SMAFilter.hpp"
 
 namespace reauto {
 // the units for the tracking wheel
@@ -33,10 +34,18 @@ public:
     // get the distance from the center of rotation
     double getCenterDistance() const;
 
+    // get the velocity (in/s)
+    double getVelocity();
+
 private:
     const double m_diam;
     const double m_dist;
     pros::Rotation m_rotation;
+
+    filter::SMAFilter m_filter;
+
+    // for velocity
+    double m_lastPos = 0;
 };
 }
 }
