@@ -14,12 +14,12 @@ struct MotionProfileData {
 class MotionProfile {
 public:
     MotionProfile();
-    void setProfile(std::vector<long> times, std::vector<double> positions, std::vector<double> velocities, std::vector<double> accelerations);
-    MotionProfileData get(long time);
-    bool isConcluded(long time); // are we done?
+    void setProfile(std::vector<double> times, std::vector<double> positions, std::vector<double> velocities, std::vector<double> accelerations);
+    MotionProfileData get(double time);
+    bool isConcluded(double time); // are we done?
 
 private:
-    std::vector<long> m_times;
+    std::vector<double> m_times;
     std::vector<double> m_positions;
     std::vector<double> m_velocities;
     std::vector<double> m_accelerations;

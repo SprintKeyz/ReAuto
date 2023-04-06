@@ -73,6 +73,10 @@ void MecanumBase::setTurnVelocity(double velocity) {
     setRightFwdVelocity(-velocity);
 }
 
+double MecanumBase::getLeftVelocity() const {
+    return (*m_left)[0].get_actual_velocity();
+}
+
 void MecanumBase::setStrafeVoltage(double fwdPower, double sidePower) {
     // assume that index 0 is front, and pos side power is right
 

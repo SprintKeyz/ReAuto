@@ -41,6 +41,9 @@ public:
     MotorSet* getLeftMotors() const;
     MotorSet* getRightMotors() const;
 
+    // get the left velocity
+    double getLeftVelocity() const override;
+
 private:
     // we need individual motors, PROS 4 removes the ability to
     // index for setters.

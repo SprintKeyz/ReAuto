@@ -132,7 +132,7 @@ void MotionChassis::brake() {
 }
 
 double MotionChassis::getLeftVelocity() const {
-    return m_trackingWheels->center->getVelocity();
+    return 0;
 }
 
 double MotionChassis::getRightVelocity() const {
@@ -264,7 +264,6 @@ void MotionChassis::arcade(double speedScale) {
 
 double MotionChassis::getHeading() const {
     // wrapped [-180, 180] by default
-    std::cout << "getHeading: " << m_imu->getHeading() << std::endl;
     return m_imu->getHeading();
 }
 

@@ -31,6 +31,7 @@ void MotionController::drive(double distance, double maxSpeed) {
     while (!m_linear->settled()) {
         double linError = distance - (m_chassis->getTrackingWheels()->center->getDistanceTraveled() - m_initialDistance);
         double angError = initialAngle - m_chassis->getHeading();
+
         double linear = m_linear->calculate(linError);
         double angular = (m_headingController != nullptr) ? m_headingController->calculate(angError) : 0;
 
@@ -128,12 +129,12 @@ void MotionController::turn(double angle, double maxSpeed, bool relative) {
         double output = m_angular->calculate(angle - m_chassis->getHeading());
         output = std::clamp(output, -maxSpeed, maxSpeed);
         m_chassis->setVoltage(output, -output);
+
+        // delay
+        pros::delay(MOTION_TIMESTEP);
     }
 
     m_chassis->brake();
-
-    // delay
-    pros::delay(MOTION_TIMESTEP);
 }
 
 void MotionController::turn(Point target, double maxSpeed) {

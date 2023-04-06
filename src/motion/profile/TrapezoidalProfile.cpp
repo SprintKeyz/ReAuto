@@ -20,7 +20,7 @@ void TrapezoidalProfile::compute(double target, double maxV, double maxA)
     double timeTotal = 0; // total time of the profile
     double profileMaxV = 0; // the max velocity of the profile
 
-    std::vector<long> times = { 0 };
+    std::vector<double> times = { 0 };
     std::vector<double> positions = { 0 };
     std::vector<double> velocities = { 0 };
     std::vector<double> accelerations = { 0 };
@@ -45,7 +45,7 @@ void TrapezoidalProfile::compute(double target, double maxV, double maxA)
     }
 
     while (times.back() < timeTotal) {
-        long time = times.back() + MOTION_TIMESTEP;
+        double time = times.back() + (MOTION_TIMESTEP / 1000.0); // seconds
         times.push_back(time);
 
         if (time < timeToMaxV) {
@@ -73,14 +73,19 @@ void TrapezoidalProfile::compute(double target, double maxV, double maxA)
             accelerations.push_back(0);
         }
 
-        positions.push_back(positions.back() + velocities.back() * MOTION_TIMESTEP);
+        positions.push_back(positions.back() + velocities.back() * (MOTION_TIMESTEP/1000.0));
     }
 
     m_profile.setProfile(times, positions, velocities, accelerations);
+
+    // print times
+    for (int i = 0; i < times.size(); i++) {
+        std::cout << times[i] << ", ";
+    }
 }
 
 void TrapezoidalProfile::followLinear() {
-    long time = 0;
+    double time = 0;
     double prevError = 0;
 
     double initialDist = m_chassis->getTrackingWheels()->center->getDistanceTraveled();
@@ -95,6 +100,8 @@ void TrapezoidalProfile::followLinear() {
 
     while (!m_profile.isConcluded(time)) {
         MotionProfileData setpoint = m_profile.get(time);
+
+        std::cout << "time: " << time << ", position: " << setpoint.position << ", velocity: " << setpoint.velocity << ", acceleration: " << setpoint.acceleration << std::endl;
 
         // get time error (for accuracy) - 1 is perfect
         double dt = (lastTime == 0) ? MOTION_TIMESTEP : pros::millis() - lastTime;
@@ -117,19 +124,21 @@ void TrapezoidalProfile::followLinear() {
         double right = output - angular;
 
         // calculate max speed and ratio the outputs
-        double max = std::max(std::abs(left), std::abs(right));
+        double max = std::max(std::abs(left), std::abs(right)) / 127.0;
         if (max > 1) {
             left /= max;
             right /= max;
         }
 
+        std::cout << "left: " << left << ", right: " << right << std::endl;
+        
         // set voltage
         m_chassis->setVoltage(left, right);
 
         prevError = error;
         lastTime = pros::millis();
         pros::delay(MOTION_TIMESTEP);
-        time += MOTION_TIMESTEP;
+        time += (MOTION_TIMESTEP / 1000.0);
     }
 
     m_chassis->brake();

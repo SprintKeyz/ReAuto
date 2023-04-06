@@ -1,6 +1,7 @@
 #include "main.h"
 #include "pros/abstract_motor.hpp"
 #include "reauto/api.hpp"
+#include "reauto/controller/MotionController.hpp"
 #include "reauto/filter/SMAFilter.hpp"
 #include "reauto/motion/profile/MotionProfile.hpp"
 #include "reauto/motion/profile/TrapezoidalProfile.hpp"
@@ -37,35 +38,45 @@ reauto::ChassisBuilder<>()
 .motors({ -20, -6, 1 }, { 5, 3, -2 }, pros::Motor_Gears::blue)
 .controller(master)
 .imu(7)
-.trackingWheels({ 12, 0.5 }, { 11, 4 }, 2.75, true)
+.trackingWheels({ -12, 0.5 }, { 11, 4 }, 2.75, true)
 .setTrackWidth(11.25_in)
 .build();
 
-PIDExits exits = {
-    0.1,
-    0,
-    120,
-    0,
-    150,
+std::vector<IPIDConstants> linConstants = {
+  {14.97, 0.0, 1.51, 3},
+  {10.4, 0, 1.3, 6 },
+  {11.71, 0, 1.3, 12 },
+  {10.898, 0, 1.276, 18 },
+  { 10.79, 0, 1.29, 24 },
 };
 
-PIDConstants hK = {
-    0.1,
-    0,
-    0,
+std::vector<IPIDConstants> angConstants = {
+  {6.2, 0, 0.39, 15},
+  {5.2, 0, 0.485, 30},
+  {5.2, 0, 0.53, 45},
+  {5.18, 0, 0.59, 90},
 };
 
-auto headingController = std::make_shared<reauto::controller::PIDController>(hK, exits);
+PIDExits linExits = {
+  0.1,
+  0.25,
+  60,
+  150,
+  400
+};
 
-reauto::TrapezoidalProfileConstants k = {
-    12,
-    2.5,
-    4,
-    1.57,
-    31.5,
-    8 };
+PIDExits angExits = {
+  0.25,
+  0.85,
+  60,
+  150,
+  400
+};
 
-std::shared_ptr<reauto::TrapezoidalProfile> profile = std::make_shared<reauto::TrapezoidalProfile>(chassis, k, headingController);
+auto linearPID = std::make_shared<reauto::controller::PIDController>(linConstants, linExits, 0, 16);
+auto angularPID = std::make_shared<reauto::controller::PIDController>(angConstants, angExits, 10, 0);
+
+auto controller = std::make_shared<reauto::MotionController>(chassis, linearPID.get(), angularPID.get(), 3.2);
 
 void initialize()
 {
@@ -109,6 +120,10 @@ void autonomous()
 
   //profile->compute(90_deg);
   //profile->followAngular();
+  double dist = chassis->getTrackingWheels()->center->getDistanceTraveled();
+  controller->drive(18_in);
+  dist = chassis->getTrackingWheels()->center->getDistanceTraveled();
+  std::cout << dist << std::endl;
 }
 
 /**
@@ -126,6 +141,8 @@ void autonomous()
  */
 void opcontrol()
 {
+  //controller->turn(90_deg);
+  // controller->drive({12, 0});
   /*chassis->setSlewDrive(24.0, 5.0);
   chassis->setDriveExponent(3);
   chassis->setControllerDeadband(12);
@@ -227,12 +244,19 @@ void opcontrol()
     pros::delay(15);
   }*/
 
-  reauto::filter::SMAFilter filter(5);
+  int debug = 0;
+
+  //double position = chassis->getTrackingWheels()->center->getDistanceTraveled();
+  //std::cout << "final pos: " << position << std::endl;
 
   while (true) {
     chassis->tank();
-    double leftVel = chassis->getLeftVelocity();
-    std::cout << "Velocity: " << leftVel << std::endl;
-    pros::delay(15);
+    //double leftVel = chassis->getLeftVelocity();
+    debug++;
+
+    Pose p = chassis->getPose();
+    std::cout << "X: " << p.x << ", Y: " << p.y << ", Angle: " << p.theta << std::endl;
+
+    pros::delay(MOTION_TIMESTEP);
   }
 }

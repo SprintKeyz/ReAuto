@@ -31,6 +31,9 @@ public:
     MotorSet* getLeftMotors() const;
     MotorSet* getRightMotors() const;
 
+    // get the left velocity
+    double getLeftVelocity() const override;
+
 private:
     std::shared_ptr<MotorSet> m_left;
     std::shared_ptr<MotorSet> m_right;

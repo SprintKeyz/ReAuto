@@ -50,6 +50,8 @@ double PIDController::calculate(double error) {
 
     double dt = (m_lastTime == 0) ? MOTION_TIMESTEP : pros::millis() - m_lastTime;
 
+    //std::cout << "Error: " << m_error << ", dt: " << dt << std::endl;
+
     // this represents how much we are off by in time
     // in a perfect world, this would be 1
     // double error_dt = dt / MOTION_TIMESTEP; - doesnt work because integral is multiplied
@@ -71,18 +73,24 @@ double PIDController::calculate(double error) {
 
     double output = (m_error * m_constants.kP) + (m_integral * m_constants.kI) + (m_derivative * m_constants.kD);
 
-    if (m_slew != 0) {
-        util::slew(m_lastOutput, output, m_slew);
+    if (m_slew != 0 && fabs(m_target) >= 6) {
+        // only slew at the start (within first 3 inches)
+        // edit: or the end (within last 3 inches)
+        // ensure target >= 6 to do this!
+        if ((fabs(m_error) > fabs(m_target) - 3.0)) {
+            util::slew(m_lastOutput, output, m_slew);
+        }
     }
 
     m_lastOutput = output;
-
     return output;
 }
 
 bool PIDController::settled() {
     // check small error
+    std::cout << "Error: " << m_error << std::endl;
     if (fabs(m_error) <= m_exits.smallError) {
+        std::cout << "TRUE" << std::endl;
         m_smallErrorTimer += MOTION_TIMESTEP;
         m_largeErrorTimer = 0;
 
@@ -97,7 +105,8 @@ bool PIDController::settled() {
     }
 
     // check large error
-    if (fabs(m_error) <= m_exits.largeError) {
+    if (fabs(m_error) <= m_exits.largeError && fabs(m_error) > m_exits.smallError) {
+        std::cout << "TRUE LARGE" << std::endl;
         m_largeErrorTimer += MOTION_TIMESTEP;
         m_smallErrorTimer = 0;
 
@@ -112,11 +121,12 @@ bool PIDController::settled() {
     }
 
     // check velocity
-    if (fabs(m_derivative) <= 0.1) {
+    if (fabs(m_derivative) <= 0.05) {
         m_velocityTimer += MOTION_TIMESTEP;
 
         if (m_velocityTimer >= m_exits.velocityTimeout) {
             resetErrors();
+            std::cout << "Exit velocity" << std::endl;
             return true;
         }
     }

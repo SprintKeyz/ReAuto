@@ -61,4 +61,9 @@ MotorSet* TankBase::getLeftMotors() const {
 MotorSet* TankBase::getRightMotors() const {
     return m_right.get();
 }
+
+double TankBase::getLeftVelocity() const {
+    std::cout << "called" << std::endl;
+    return (*m_left)[0].get_actual_velocity();
+}
 }

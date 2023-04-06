@@ -9,14 +9,14 @@ MotionProfile::MotionProfile() {
     m_accelerations = { 0 };
 }
 
-void MotionProfile::setProfile(std::vector<long> times, std::vector<double> positions, std::vector<double> velocities, std::vector<double> accelerations) {
+void MotionProfile::setProfile(std::vector<double> times, std::vector<double> positions, std::vector<double> velocities, std::vector<double> accelerations) {
     m_times = times;
     m_positions = positions;
     m_velocities = velocities;
     m_accelerations = accelerations;
 }
 
-MotionProfileData MotionProfile::get(long time) {
+MotionProfileData MotionProfile::get(double time) {
     MotionProfileData data;
 
     // find the index of the time
@@ -40,7 +40,7 @@ MotionProfileData MotionProfile::get(long time) {
     return data;
 }
 
-bool MotionProfile::isConcluded(long time) {
+bool MotionProfile::isConcluded(double time) {
     return (time >= m_times.back());
 }
 }

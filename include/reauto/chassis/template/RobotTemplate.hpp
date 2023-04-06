@@ -38,6 +38,9 @@ public:
     // brake the chassis
     virtual void brake() = 0;
 
+    // get the left velocity
+    virtual double getLeftVelocity() const = 0;
+
 protected:
     explicit RobotTemplate() = default;
 };

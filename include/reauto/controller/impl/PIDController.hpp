@@ -24,11 +24,11 @@ public:
     bool settled() override;
 
 private:
-    double m_target;
-    double m_error;
-    double m_prevError;
-    double m_slew;
-    double m_pStartI; // when to start integrating?
+    double m_target = 0;
+    double m_error = 0;
+    double m_prevError = 0;
+    double m_slew = 0;
+    double m_pStartI = 0; // when to start integrating?
 
     PIDExits m_exits;
     InterpolatedConstants m_constantTable;
