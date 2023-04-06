@@ -171,13 +171,7 @@ void autonomous()
  */
 void opcontrol()
 {
-  controller->drive({-12, 5}, 100_pct);
-  //controller->drive({45, -20}, 100_pct);
-  //controller->turn({0, 0}, 80_pct);
-  //controller->turn({20, 20}, 90_pct);
-  //controller->turn(90_deg);
-  //-controller->drive({12, 4});
-  /*chassis->setSlewDrive(24.0, 5.0);
+  chassis->setSlewDrive(24.0, 5.0);
   chassis->setDriveExponent(3);
   chassis->setControllerDeadband(12);
   chassis->setDriveMaxSpeed(100_pct);
@@ -276,24 +270,5 @@ void opcontrol()
 
     debug++;
     pros::delay(15);
-  }*/
-
-  int debug = 0;
-
-  //double position = chassis->getTrackingWheels()->center->getDistanceTraveled();
-  //std::cout << "final pos: " << position << std::endl;
-
-  while (true) {
-    chassis->tank();
-    //double leftVel = chassis->getLeftVelocity();
-    debug++;
-
-    Pose p = chassis->getPose();
-    if (debug == 20) {
-      std::cout << "X: " << p.x << ", Y: " << p.y << ", Angle: " << p.theta << std::endl;
-      debug = 0;
-    } 
-
-    pros::delay(MOTION_TIMESTEP);
   }
 }
