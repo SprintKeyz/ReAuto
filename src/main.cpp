@@ -171,7 +171,10 @@ void autonomous()
  */
 void opcontrol()
 {
-  controller->drive({12, 6}, 70_pct);
+  controller->drive({-12, 5}, 100_pct);
+  //controller->drive({45, -20}, 100_pct);
+  //controller->turn({0, 0}, 80_pct);
+  //controller->turn({20, 20}, 90_pct);
   //controller->turn(90_deg);
   //-controller->drive({12, 4});
   /*chassis->setSlewDrive(24.0, 5.0);

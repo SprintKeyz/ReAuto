@@ -80,7 +80,7 @@ void MotionController::drive(Point target, double maxSpeed) {
         dist = calc::distance(current, target);
         angle = math::wrap180(calc::angleDifference(current, target) - m_chassis->getHeading());
 
-        dist *= cos(angle);
+        dist *= cos(math::degToRad(angle));
 
         double distOutput = m_linear->calculate(dist);
         double angOutput = m_angular->calculate(angle);
@@ -143,6 +143,7 @@ void MotionController::turn(Point target, double maxSpeed) {
     // calculate angle to the point
     Pose p = m_chassis->getPose();
     double angle = math::wrap180(calc::angleDifference({ p.x, p.y }, target) - p.theta);
+    std::cout << "angle: " << angle << std::endl;
     turn(angle, maxSpeed);
 }
 }

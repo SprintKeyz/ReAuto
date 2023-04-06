@@ -88,7 +88,6 @@ double PIDController::calculate(double error) {
 
 bool PIDController::settled() {
     // check small error
-    std::cout << "Error: " << m_error << std::endl;
     if (fabs(m_error) <= m_exits.smallError) {
         std::cout << "TRUE" << std::endl;
         m_smallErrorTimer += MOTION_TIMESTEP;
