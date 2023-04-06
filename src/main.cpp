@@ -38,39 +38,62 @@ reauto::ChassisBuilder<>()
 .motors({ -20, -6, 1 }, { 5, 3, -2 }, pros::Motor_Gears::blue)
 .controller(master)
 .imu(7)
-.trackingWheels({ -12, 0.5 }, { 11, 4 }, 2.75, true)
-.setTrackWidth(11.25_in)
+.trackingWheels({ -12, 1.168 }, { 11, 4.51705 }, 2.75, true)
+.setTrackWidth(11_in)
 .build();
+
+// velocities in in/s
+reauto::TrapezoidalProfileConstants constants = {
+  90,
+  2.06,
+  59.7,
+  0.308,
+  2.02,
+  0.08,
+};
+
+PIDExits hcExits = {
+  0.25,
+  0.85,
+  60,
+  150,
+  400
+};
+
+PIDConstants hcConstants = { 3.8, 0, 0 };
+
+auto hc = std::make_shared<reauto::controller::PIDController>(hcConstants, hcExits);
+auto profile = std::make_shared<reauto::TrapezoidalProfile>(chassis, constants, hc);
 
 std::vector<IPIDConstants> linConstants = {
   {14.97, 0.0, 1.51, 3},
   {10.4, 0, 1.3, 6 },
-  {11.71, 0, 1.3, 12 },
-  {10.898, 0, 1.276, 18 },
+  { 9.3, 0, 0.85, 12 },
+  { 8.22, 0, 0.9, 18 },
   { 10.79, 0, 1.29, 24 },
 };
 
 std::vector<IPIDConstants> angConstants = {
   {6.2, 0, 0.39, 15},
   {5.2, 0, 0.485, 30},
-  {5.2, 0, 0.53, 45},
+  {5.2, 0, 0.502, 45},
   {5.18, 0, 0.59, 90},
 };
 
 PIDExits linExits = {
   0.1,
-  0.25,
-  60,
-  150,
-  400
+  0.4,
+  50,
+  140,
+  250
 };
 
 PIDExits angExits = {
-  0.25,
-  0.85,
+  0.5,
+  1,
   60,
   150,
-  400
+  250
 };
 
 auto linearPID = std::make_shared<reauto::controller::PIDController>(linConstants, linExits, 0, 16);
@@ -120,8 +143,15 @@ void autonomous()
 
   //profile->compute(90_deg);
   //profile->followAngular();
+
+  //profile->compute(24_in);
+  //profile->followLinear();
+
+  controller->drive(24_in);
+  controller->turn(30);
+
   double dist = chassis->getTrackingWheels()->center->getDistanceTraveled();
-  controller->drive(18_in);
+  //controller->drive(18_in);
   dist = chassis->getTrackingWheels()->center->getDistanceTraveled();
   std::cout << dist << std::endl;
 }
@@ -141,8 +171,9 @@ void autonomous()
  */
 void opcontrol()
 {
+  controller->drive({12, 6}, 70_pct);
   //controller->turn(90_deg);
-  // controller->drive({12, 0});
+  //-controller->drive({12, 4});
   /*chassis->setSlewDrive(24.0, 5.0);
   chassis->setDriveExponent(3);
   chassis->setControllerDeadband(12);
@@ -255,7 +286,10 @@ void opcontrol()
     debug++;
 
     Pose p = chassis->getPose();
-    std::cout << "X: " << p.x << ", Y: " << p.y << ", Angle: " << p.theta << std::endl;
+    if (debug == 20) {
+      std::cout << "X: " << p.x << ", Y: " << p.y << ", Angle: " << p.theta << std::endl;
+      debug = 0;
+    } 
 
     pros::delay(MOTION_TIMESTEP);
   }

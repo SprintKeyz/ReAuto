@@ -87,8 +87,10 @@ void MotionController::drive(Point target, double maxSpeed) {
 
         // if we are physically close and the total movement was somewhat large, we can disable turning
         // the 7.5 is from lemlib, which I'm basing this on
-        bool closeToTarget = (totalDist > 7.5 && calc::distance(current, target) < 7.5);
-        if (closeToTarget) angOutput = 0;
+        bool closeToTarget = (calc::distance(current, target) < 7.5);
+        if (closeToTarget) {
+            angOutput = 0;
+        }
 
         // cap the linear speeds
         distOutput = std::clamp(distOutput, -maxSpeed, maxSpeed);
