@@ -61,7 +61,7 @@ void MotionController::drive(double distance, double maxSpeed, double maxTime, d
         m_processTimer += MOTION_TIMESTEP;
     }
 
-    m_chassis->brake();
+    if (forceExitError == 0) m_chassis->brake();
     m_processTimer = 0;
 }
 
@@ -128,7 +128,7 @@ void MotionController::drive(Point target, double maxSpeed, double maxTime, doub
         m_processTimer += MOTION_TIMESTEP;
     }
 
-    m_chassis->brake();
+    if (forceExitError == 0) m_chassis->brake();
     m_processTimer = 0;
 }
 
@@ -163,7 +163,7 @@ void MotionController::turn(double angle, double maxSpeed, bool relative, double
         m_processTimer += MOTION_TIMESTEP;
     }
 
-    m_chassis->brake();
+    if (forceExitError == 0) m_chassis->brake();
     m_processTimer = 0;
 }
 
