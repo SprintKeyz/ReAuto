@@ -1,24 +1,6 @@
 #include "main.h"
 #include "pros/abstract_motor.hpp"
 #include "reauto/api.hpp"
-#include "reauto/controller/MotionController.hpp"
-#include "reauto/filter/SMAFilter.hpp"
-#include "reauto/motion/profile/MotionProfile.hpp"
-#include "reauto/motion/profile/TrapezoidalProfile.hpp"
-
-/**
- * A callback function for LLEMU's center button.
- *
- * When this callback is fired, it will toggle line 2 of the LCD text between
- * "I was pressed!" and nothing.
- */
-
- /**
-  * Runs initialization code. This occurs as soon as the program is started.
-  *
-  * All other competition modes are blocked by initialize; it is recommended
-  * to keep execution time for this mode under a few seconds.
-  */
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
@@ -147,13 +129,15 @@ void autonomous()
   //profile->compute(24_in);
   //profile->followLinear();
 
-  controller->drive(24_in);
-  controller->turn(30);
-
-  double dist = chassis->getTrackingWheels()->center->getDistanceTraveled();
-  //controller->drive(18_in);
-  dist = chassis->getTrackingWheels()->center->getDistanceTraveled();
-  std::cout << dist << std::endl;
+  // chained move to points
+  controller->drive({ 46, 21 }, 100_pct, 0, 3.5_in);
+  controller->drive({ 30, 18 }, 100_pct, 0, 3.5_in);
+  controller->drive({ 21, -5 }, 100_pct, 0, 3.5_in);
+  controller->drive({ 37, 23 }, 100_pct, 0, 3.2_in);
+  controller->drive({ 56, -65 }, 100_pct, 0, 3.5_in);
+  controller->drive({ 18, 34 }, 100_pct);
+  controller->drive({ 0, 0 }, 100_pct);
+  controller->turn(0);
 }
 
 /**
@@ -255,6 +239,11 @@ void opcontrol()
     {
       expansionPiston.set_value(false);
       pistonTime = pros::millis();
+    }
+
+    if (master.get_digital(pros::E_CONTROLLER_DIGITAL_B)) {
+      cataPiston.toggle();
+      pros::delay(150);
     }
 
     chassis->tank();

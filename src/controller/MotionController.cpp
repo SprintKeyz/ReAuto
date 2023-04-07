@@ -21,7 +21,7 @@ MotionController::MotionController(std::shared_ptr<MotionChassis> chassis, contr
 }
 
 // drive
-void MotionController::drive(double distance, double maxSpeed) {
+void MotionController::drive(double distance, double maxSpeed, double maxTime, double forceExitError) {
     m_linear->setTarget(distance);
     double initialAngle = m_chassis->getHeading();
     if (m_headingController != nullptr) m_headingController->setTarget(initialAngle);
@@ -29,8 +29,14 @@ void MotionController::drive(double distance, double maxSpeed) {
     m_initialDistance = m_chassis->getTrackingWheels()->center->getDistanceTraveled();
 
     while (!m_linear->settled()) {
+        // check max time
+        if (maxTime != 0 && m_processTimer > maxTime) break;
+
         double linError = distance - (m_chassis->getTrackingWheels()->center->getDistanceTraveled() - m_initialDistance);
         double angError = initialAngle - m_chassis->getHeading();
+
+        // check force exit error
+        if (forceExitError != 0 && std::abs(linError) < forceExitError) break;
 
         double linear = m_linear->calculate(linError);
         double angular = (m_headingController != nullptr) ? m_headingController->calculate(angError) : 0;
@@ -52,12 +58,14 @@ void MotionController::drive(double distance, double maxSpeed) {
 
         // delay
         pros::delay(MOTION_TIMESTEP);
+        m_processTimer += MOTION_TIMESTEP;
     }
 
     m_chassis->brake();
+    m_processTimer = 0;
 }
 
-void MotionController::drive(Point target, double maxSpeed) {
+void MotionController::drive(Point target, double maxSpeed, double maxTime, double forceExitError) {
     // calc distance and angle errors
     Point initial = { m_chassis->getPose().x, m_chassis->getPose().y };
 
@@ -75,10 +83,16 @@ void MotionController::drive(Point target, double maxSpeed) {
 
     // update!
     while (!m_linear->settled()) {
+        // check max time
+        if (maxTime != 0 && m_processTimer > maxTime) break;
+
         Point current = { m_chassis->getPose().x, m_chassis->getPose().y };
 
         dist = calc::distance(current, target);
         angle = math::wrap180(calc::angleDifference(current, target) - m_chassis->getHeading());
+
+        // check force exit error
+        if (forceExitError != 0 && std::abs(dist) < forceExitError) break;
 
         dist *= cos(math::degToRad(angle));
 
@@ -111,11 +125,15 @@ void MotionController::drive(Point target, double maxSpeed) {
 
         // delay
         pros::delay(MOTION_TIMESTEP);
+        m_processTimer += MOTION_TIMESTEP;
     }
+
+    m_chassis->brake();
+    m_processTimer = 0;
 }
 
 // turn
-void MotionController::turn(double angle, double maxSpeed, bool relative) {
+void MotionController::turn(double angle, double maxSpeed, bool relative, double maxTime, double forceExitError) {
     // wrap angle
     angle = math::wrap180(angle);
 
@@ -128,22 +146,32 @@ void MotionController::turn(double angle, double maxSpeed, bool relative) {
     }
 
     while (!m_angular->settled()) {
-        double output = m_angular->calculate(angle - m_chassis->getHeading());
+        // check max time
+        if (maxTime != 0 && m_processTimer > maxTime) return;
+
+        double error = angle - m_chassis->getHeading();
+
+        // check force exit error
+        if (forceExitError != 0 && std::abs(error) < forceExitError) break;
+
+        double output = m_angular->calculate(error);
         output = std::clamp(output, -maxSpeed, maxSpeed);
         m_chassis->setVoltage(output, -output);
 
         // delay
         pros::delay(MOTION_TIMESTEP);
+        m_processTimer += MOTION_TIMESTEP;
     }
 
     m_chassis->brake();
+    m_processTimer = 0;
 }
 
-void MotionController::turn(Point target, double maxSpeed) {
+void MotionController::turn(Point target, double maxSpeed, double maxTime, double forceExitError) {
     // calculate angle to the point
     Pose p = m_chassis->getPose();
     double angle = math::wrap180(calc::angleDifference({ p.x, p.y }, target) - p.theta);
     std::cout << "angle: " << angle << std::endl;
-    turn(angle, maxSpeed);
+    turn(angle, maxSpeed, false, maxTime, forceExitError);
 }
 }
