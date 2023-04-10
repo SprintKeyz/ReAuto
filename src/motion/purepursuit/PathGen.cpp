@@ -84,12 +84,12 @@ double calcPointCurvature(Waypoint prev, Waypoint curr, Waypoint next) {
     double distOne = wDist(curr, prev);
     double distTwo = wDist(curr, next);
     double distThree = wDist(next, prev);
-    
+
     double sidesProduct = distOne * distTwo * distThree;
     double semiPerim = (distOne + distTwo + distThree) / 2.0;
-    
+
     double triangleArea = sqrt(semiPerim * (semiPerim - distOne) * (semiPerim - distTwo) * (semiPerim - distThree));
-    
+
     double rad = sidesProduct / (4 * triangleArea);
     double curvature = std::isnormal(1.0 / rad) ? 1.0 / rad : 0;
     return std::pow(curvature, 2);
@@ -106,7 +106,7 @@ void PurePursuitGenerator::calculateCurvatures(std::vector<Waypoint>& points) {
 void calculateVelocities(std::vector<Waypoint>& points, PathConstraints constraints) {
     points.back().velocity = constraints.endVel;
 
-    for (int i=points.size() - 1; i > 0; i--) {
+    for (int i = points.size() - 1; i > 0; i--) {
         Waypoint start = points[i];
         Waypoint end = points[i - 1];
 
@@ -130,8 +130,7 @@ std::vector<Waypoint> PurePursuitGenerator::generatePath(std::vector<Pose> point
     std::vector<Waypoint> waypoints;
 
     for (Pose p : points) {
-        if (p.theta == 361) p.theta = 0;
-        waypoints.push_back({ p.x, p.y, 0, p.theta, 0 });
+        waypoints.push_back({ p.x, p.y, 0, p.theta.value_or(0), 0 });
     }
 
     injectPoints(waypoints, spacing);

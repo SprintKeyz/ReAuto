@@ -36,11 +36,11 @@ void PIDController::resetErrors() {
     m_velocityTimer = 0;
 }
 
-void PIDController::setTarget(double target) {
+void PIDController::setTarget(double target, bool reset) {
     m_constants = m_constantTable.get(target);
     m_target = target;
     m_error = target;
-    resetController();
+    if (reset) resetController();
 }
 
 double PIDController::calculate(double error) {

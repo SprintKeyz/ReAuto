@@ -43,7 +43,7 @@ double PurePursuitFollower::calculateCurvature(Pose lookaheadPoint) {
     Pose currentPose = m_chassis->getPose();
     Pose diff = { lookaheadPoint.x - currentPose.x, lookaheadPoint.y - currentPose.y, 0 };
 
-    double head = math::degToRad((currentPose.theta * -1) + 90);
+    double head = math::degToRad((currentPose.theta.value_or(0) * -1) + 90);
     double a = -std::tan(head);
     double c = -a * currentPose.x - currentPose.y;
     double x = std::abs(a * lookaheadPoint.x + 1.0 * lookaheadPoint.y + c) / std::sqrt(a * a + 1);

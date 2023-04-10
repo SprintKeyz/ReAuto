@@ -279,7 +279,7 @@ Pose MotionChassis::getPose() const {
 
 void MotionChassis::setPose(Pose p) {
     m_odom->setPosition({ p.x, p.y });
-    m_imu->setHeading(p.theta);
+    m_imu->setHeading(p.theta.value_or(0));
     m_pose = p;
 }
 

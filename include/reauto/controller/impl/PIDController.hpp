@@ -15,7 +15,7 @@ public:
     PIDController(PIDConstants constants, PIDExits exits, double pStartI = 0, double slew = 0);
 
     // set the controller target
-    void setTarget(double target) override;
+    void setTarget(double target, bool resetController = true) override;
 
     // calculate the controller output
     double calculate(double current) override;

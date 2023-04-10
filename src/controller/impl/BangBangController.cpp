@@ -9,7 +9,7 @@ BangBangController::BangBangController(double exitError) {
     m_exitError = exitError;
 }
 
-void BangBangController::setTarget(double target) {
+void BangBangController::setTarget(double target, bool resetController) {
     m_target = target;
     m_error = target;
 }

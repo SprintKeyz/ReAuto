@@ -138,6 +138,7 @@ void autonomous()
   controller->drive({ 18, 34 }, 100_pct);
   controller->drive({ 0, 0 }, 100_pct);
   controller->turn(0);
+  controller->driveToPose({ 25, 2, 90 }, 0.6, 100_pct, 0, 0_in, true);
 }
 
 /**

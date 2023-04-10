@@ -9,7 +9,7 @@ public:
     BangBangController(double exitError = 0.5);
 
     // set the controller target
-    void setTarget(double target) override;
+    void setTarget(double target, bool resetController = true) override;
 
     // calculate the controller output
     double calculate(double error) override;

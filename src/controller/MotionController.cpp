@@ -21,7 +21,7 @@ MotionController::MotionController(std::shared_ptr<MotionChassis> chassis, contr
 }
 
 // drive
-void MotionController::drive(double distance, double maxSpeed, double maxTime, double forceExitError) {
+void MotionController::drive(double distance, double maxSpeed, double maxTime, double forceExitError, bool thru) {
     m_linear->setTarget(distance);
     double initialAngle = m_chassis->getHeading();
     if (m_headingController != nullptr) m_headingController->setTarget(initialAngle);
@@ -44,6 +44,9 @@ void MotionController::drive(double distance, double maxSpeed, double maxTime, d
         // cap linear speed to max
         linear = std::clamp(linear, -maxSpeed, maxSpeed);
 
+        // if thru, set linear speed to max
+        if (thru) linear = maxSpeed;
+
         double lSpeed = linear + angular;
         double rSpeed = linear - angular;
 
@@ -65,7 +68,7 @@ void MotionController::drive(double distance, double maxSpeed, double maxTime, d
     m_processTimer = 0;
 }
 
-void MotionController::drive(Point target, double maxSpeed, double maxTime, double forceExitError) {
+void MotionController::drive(Point target, double maxSpeed, double maxTime, double forceExitError, bool thru) {
     // calc distance and angle errors
     Point initial = { m_chassis->getPose().x, m_chassis->getPose().y };
 
@@ -109,6 +112,82 @@ void MotionController::drive(Point target, double maxSpeed, double maxTime, doub
         // cap the linear speeds
         distOutput = std::clamp(distOutput, -maxSpeed, maxSpeed);
 
+        // if thru, set linear speed to max
+        if (thru) distOutput = maxSpeed;
+
+        // calculate speeds
+        double lSpeed = distOutput + angOutput;
+        double rSpeed = distOutput - angOutput;
+
+        // limit the speeds to respect max speed
+        double speedRatio = std::max(std::abs(lSpeed), std::abs(rSpeed)) / maxSpeed;
+        if (speedRatio > 1) {
+            lSpeed /= speedRatio;
+            rSpeed /= speedRatio;
+        }
+
+        // set the speeds
+        m_chassis->setVoltage(lSpeed, rSpeed);
+
+        // delay
+        pros::delay(MOTION_TIMESTEP);
+        m_processTimer += MOTION_TIMESTEP;
+    }
+
+    if (forceExitError == 0) m_chassis->brake();
+    m_processTimer = 0;
+}
+
+Point calcBoomerangPoint(Pose initial, Pose target, double leadToPose) {
+    // calc distance and angle errors
+    double dist = calc::distance({ initial.x, initial.y }, { target.x, target.y });
+    double angle = std::atan2(target.y - initial.y, target.x - initial.x) - initial.theta.value_or(0);
+
+    return {
+        initial.x + (dist - leadToPose) * std::cos(angle),
+        initial.y + (dist - leadToPose) * std::sin(angle)
+    };
+}
+
+// boomerang
+void MotionController::driveToPose(Pose target, double leadToPose, double maxSpeed, double maxTime, double forceExitError, bool thru) {
+    bool firstRun = true;
+
+    while (true) {
+        // calc boomerang point
+        Point current = { m_chassis->getPose().x, m_chassis->getPose().y };
+
+        // check max time
+        if (maxTime != 0 && m_processTimer > maxTime) break;
+
+        // calc boomerang point
+        Point boomerang = calcBoomerangPoint(m_chassis->getPose(), target, leadToPose);
+
+        // drive to boomerang point
+        double dist = calc::distance(current, boomerang);
+        double angle = math::wrap180(calc::angleDifference(current, boomerang) - m_chassis->getHeading());
+
+        // calc distance to target for force exit error
+        double distToTarget = calc::distance(boomerang, { target.x, target.y });
+
+        // check force exit error
+        if (forceExitError != 0 && distToTarget < forceExitError) break;
+
+        // set PID targets
+        m_linear->setTarget(dist, firstRun);
+        m_angular->setTarget(angle, firstRun);
+        firstRun = false;
+
+        // update!
+        double distOutput = m_linear->calculate(dist);
+        double angOutput = m_angular->calculate(angle);
+
+        // cap the linear speeds
+        distOutput = std::clamp(distOutput, -maxSpeed, maxSpeed);
+
+        // if thru, set linear speed to max
+        if (thru) distOutput = maxSpeed;
+
         // calculate speeds
         double lSpeed = distOutput + angOutput;
         double rSpeed = distOutput - angOutput;
@@ -133,7 +212,7 @@ void MotionController::drive(Point target, double maxSpeed, double maxTime, doub
 }
 
 // turn
-void MotionController::turn(double angle, double maxSpeed, bool relative, double maxTime, double forceExitError) {
+void MotionController::turn(double angle, double maxSpeed, bool relative, double maxTime, double forceExitError, bool thru) {
     // wrap angle
     angle = math::wrap180(angle);
 
@@ -156,6 +235,10 @@ void MotionController::turn(double angle, double maxSpeed, bool relative, double
 
         double output = m_angular->calculate(error);
         output = std::clamp(output, -maxSpeed, maxSpeed);
+
+        // if thru, set angular speed to max
+        if (thru) output = maxSpeed;
+
         m_chassis->setVoltage(output, -output);
 
         // delay
@@ -167,11 +250,11 @@ void MotionController::turn(double angle, double maxSpeed, bool relative, double
     m_processTimer = 0;
 }
 
-void MotionController::turn(Point target, double maxSpeed, double maxTime, double forceExitError) {
+void MotionController::turn(Point target, double maxSpeed, double maxTime, double forceExitError, bool thru) {
     // calculate angle to the point
     Pose p = m_chassis->getPose();
-    double angle = math::wrap180(calc::angleDifference({ p.x, p.y }, target) - p.theta);
+    double angle = math::wrap180(calc::angleDifference({ p.x, p.y }, target) - p.theta.value_or(0));
     std::cout << "angle: " << angle << std::endl;
-    turn(angle, maxSpeed, false, maxTime, forceExitError);
+    turn(angle, maxSpeed, false, maxTime, forceExitError, thru);
 }
 }
