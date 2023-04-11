@@ -16,67 +16,64 @@ pros::Motor cata(4);
 #define CATA_SPEED 127
 
 auto chassis =
-reauto::ChassisBuilder<>()
-.motors({ -20, -6, 1 }, { 5, 3, -2 }, pros::Motor_Gears::blue)
-.controller(master)
-.imu(7)
-.trackingWheels({ -12, 1.168 }, { 11, 4.51705 }, 2.75, true)
-.setTrackWidth(11_in)
-.build();
+    reauto::ChassisBuilder<>()
+        .motors({-20, -6, 1}, {5, 3, -2}, pros::Motor_Gears::blue)
+        .controller(master)
+        .imu(7)
+        .trackingWheels({-12, 1.168}, {11, 4.51705}, 2.75, true)
+        .setTrackWidth(11_in)
+        .build();
 
 // velocities in in/s
 reauto::TrapezoidalProfileConstants constants = {
-  90,
-  2.06,
-  59.7,
-  0.308,
-  2.02,
-  0.08,
+    90,
+    2.06,
+    59.7,
+    0.308,
+    2.02,
+    0.08,
 };
 
 PIDExits hcExits = {
-  0.25,
-  0.85,
-  60,
-  150,
-  400
-};
+    0.25,
+    0.85,
+    60,
+    150,
+    400};
 
-PIDConstants hcConstants = { 3.8, 0, 0 };
+PIDConstants hcConstants = {3.8, 0, 0};
 
 auto hc = std::make_shared<reauto::controller::PIDController>(hcConstants, hcExits);
 auto profile = std::make_shared<reauto::TrapezoidalProfile>(chassis, constants, hc);
 
 std::vector<IPIDConstants> linConstants = {
-  {14.97, 0.0, 1.51, 3},
-  {10.4, 0, 1.3, 6 },
-  { 9.3, 0, 0.85, 12 },
-  { 8.22, 0, 0.9, 18 },
-  { 10.79, 0, 1.29, 24 },
+    {14.97, 0.0, 1.51, 3},
+    {10.4, 0, 1.3, 6},
+    {9.3, 0, 0.85, 12},
+    {8.22, 0, 0.9, 18},
+    {10.79, 0, 1.29, 24},
 };
 
 std::vector<IPIDConstants> angConstants = {
-  {6.2, 0, 0.39, 15},
-  {5.2, 0, 0.485, 30},
-  {5.2, 0, 0.502, 45},
-  {5.18, 0, 0.59, 90},
+    {6.2, 0, 0.39, 15},
+    {5.2, 0, 0.485, 30},
+    {5.2, 0, 0.502, 45},
+    {5.18, 0, 0.59, 90},
 };
 
 PIDExits linExits = {
-  0.1,
-  0.4,
-  50,
-  140,
-  250
-};
+    0.1,
+    0.4,
+    50,
+    140,
+    250};
 
 PIDExits angExits = {
-  0.5,
-  1,
-  60,
-  150,
-  250
-};
+    0.5,
+    1,
+    60,
+    150,
+    250};
 
 auto linearPID = std::make_shared<reauto::controller::PIDController>(linConstants, linExits, 0, 16);
 auto angularPID = std::make_shared<reauto::controller::PIDController>(angConstants, angExits, 10, 0);
@@ -118,27 +115,59 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
+
+void cataTask()
+{
+  cata = -CATA_SPEED;
+  pros::delay(600);
+  // fired, retract until hit switch
+  cata = -CATA_SPEED;
+
+  while (!cataLimit.get_value())
+  {
+    pros::delay(10);
+  }
+
+  cata.brake();
+}
+
+void fireCata()
+{
+  pros::Task fireCataTask(cataTask);
+}
+
 void autonomous()
 {
-  //profile->compute(18_in);
-  //profile->followLinear();
+  // profile->compute(18_in);
+  // profile->followLinear();
 
-  //profile->compute(90_deg);
-  //profile->followAngular();
+  // profile->compute(90_deg);
+  // profile->followAngular();
 
-  //profile->compute(24_in);
-  //profile->followLinear();
+  // profile->compute(24_in);
+  // profile->followLinear();
+  chassis->setPose({0, 0, 0_deg});
 
-  // chained move to points
-  controller->drive({ 46, 21 }, 100_pct, 0, 3.5_in);
-  controller->drive({ 30, 18 }, 100_pct, 0, 3.5_in);
-  controller->drive({ 21, -5 }, 100_pct, 0, 3.5_in);
-  controller->drive({ 37, 23 }, 100_pct, 0, 3.2_in);
-  controller->drive({ 56, -65 }, 100_pct, 0, 3.5_in);
-  controller->drive({ 18, 34 }, 100_pct);
-  controller->drive({ 0, 0 }, 100_pct);
-  controller->turn(0);
-  controller->driveToPose({ 25, 2, 90 }, 0.6, 100_pct, 0, 0_in, true);
+  // get the roller
+  controller->drive(2.1, 90_pct, 0, 0, true);
+  intakeMotor.move_relative(350, 600);
+  pros::delay(150);
+  // go shoot
+  controller->drive({-6, 1.7}, 100_pct, true);
+  fireCata();
+  pros::delay(400);
+
+  // get three stack
+  intakeMotor = -127;
+  controller->turn(-135_deg, 100_pct, false, 1100);
+  controller->drive(36, 35_pct);
+
+  // shoot
+  controller->turn(-37_deg, 100_pct, false, 1000);
+  controller->drive(-2, 100_pct, 0, 0);
+  pros::delay(400);
+  fireCata();
+  pros::delay(400);
 }
 
 /**
@@ -242,7 +271,8 @@ void opcontrol()
       pistonTime = pros::millis();
     }
 
-    if (master.get_digital(pros::E_CONTROLLER_DIGITAL_B)) {
+    if (master.get_digital(pros::E_CONTROLLER_DIGITAL_B))
+    {
       cataPiston.toggle();
       pros::delay(150);
     }
@@ -254,8 +284,8 @@ void opcontrol()
     if (debug == 13)
     {
       debug = 0;
-      printf("X: %f, Y: %f, Angle: %f\n", chassisPos.x, chassisPos.y, chassisPos.theta);
-      //printf("Angle: %f\n", chassis->getHeading());
+      printf("X: %f, Y: %f, Angle: %f\n", chassisPos.x, chassisPos.y, chassisPos.theta.value());
+      // printf("Angle: %f\n", chassis->getHeading());
     }
 
     debug++;
