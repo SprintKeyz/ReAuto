@@ -23,11 +23,11 @@ void TuningHelper::runDistance() {
 
     // print initial screen
     m_controller.print(0, 0, "kP: %f", m_constants.kP);
-    pros::delay(50);
+    pros::delay(80);
     m_controller.print(1, 0, "Target: %f", m_target);
-    pros::delay(50);
+    pros::delay(80);
     m_controller.print(2, 0, "Error: 0");
-    pros::delay(50);
+    pros::delay(80);
 
     // run a loop for the controller!
     while (true) {
@@ -80,7 +80,7 @@ void TuningHelper::runDistance() {
         // check if the up button is pressed
         if (m_controller.get_digital(pros::E_CONTROLLER_DIGITAL_UP)) {
             // increment the value
-            value += 0.01;
+            value += 0.1;
 
             // update the controller screen
             update(editing, value);
@@ -89,7 +89,7 @@ void TuningHelper::runDistance() {
         // check if the down button is pressed
         if (m_controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) {
             // decrement the value
-            value -= 0.01;
+            value -= 0.1;
 
             // update the controller screen
             update(editing, value);
@@ -128,7 +128,7 @@ void TuningHelper::runDistance() {
                 double initial = m_chassis->getTrackingWheels()->center->getDistanceTraveled();
 
                 // run a loop for the controller!
-                while (true) {
+                while (!m_lin->settled()) {
                     // update the error
                     double lin_error = m_target - (m_chassis->getTrackingWheels()->center->getDistanceTraveled() - initial);
 
@@ -148,11 +148,11 @@ void TuningHelper::runDistance() {
                 // clear the screen
                 m_controller.clear();
                 // print "SETTLED"
-                pros::delay(50);
+                pros::delay(80);
                 m_controller.print(0, 0, "SETTLED");
-                pros::delay(50);
+                pros::delay(80);
                 m_controller.print(0, 0, "A -> reset");
-                pros::delay(50);
+                pros::delay(80);
 
                 m_hasRun = true;
 
@@ -183,11 +183,11 @@ void TuningHelper::runAngle() {
 
     // print initial screen
     m_controller.print(0, 0, "kP: %f", m_constants.kP);
-    pros::delay(50);
+    pros::delay(80);
     m_controller.print(1, 0, "Target: %f", m_target);
-    pros::delay(50);
+    pros::delay(80);
     m_controller.print(2, 0, "Error: 0");
-    pros::delay(50);
+    pros::delay(80);
 
     // run a loop for the controller!
     while (true) {
@@ -217,11 +217,6 @@ void TuningHelper::runAngle() {
         if (m_controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT)) {
             // cycle to previous tuning variable
             switch (editing) {
-            case TuningCompoment::KP_VALUE:
-                editing = TuningCompoment::KD_VALUE;
-                value = m_constants.kD;
-                break;
-
             case TuningCompoment::KD_VALUE:
                 editing = TuningCompoment::KI_VALUE;
                 value = m_constants.kI;
@@ -230,6 +225,11 @@ void TuningHelper::runAngle() {
             case TuningCompoment::KI_VALUE:
                 editing = TuningCompoment::KP_VALUE;
                 value = m_constants.kP;
+                break;
+
+            case TuningCompoment::KP_VALUE:
+                editing = TuningCompoment::KD_VALUE;
+                value = m_constants.kD;
                 break;
             }
 
@@ -240,7 +240,7 @@ void TuningHelper::runAngle() {
         // check if the up button is pressed
         if (m_controller.get_digital(pros::E_CONTROLLER_DIGITAL_UP)) {
             // increment the value
-            value += 0.01;
+            value += 0.1;
 
             // update the controller screen
             update(editing, value);
@@ -249,7 +249,7 @@ void TuningHelper::runAngle() {
         // check if the down button is pressed
         if (m_controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) {
             // decrement the value
-            value -= 0.01;
+            value -= 0.1;
 
             // update the controller screen
             update(editing, value);
@@ -270,7 +270,7 @@ void TuningHelper::runAngle() {
             if (m_hasRun) {
                 // reset the chassis by driving slowly backwards to the og point
                 while (m_chassis->getHeading() > 0) {
-                    m_chassis->setVoltage(35, -35);
+                    m_chassis->setVoltage(-48, 48);
                 }
 
                 // brake
@@ -284,7 +284,7 @@ void TuningHelper::runAngle() {
                 m_ang->setTarget(m_target);
 
                 // run a loop for the controller!
-                while (true) {
+                while (!m_ang->settled()) {
                     // update the error
                     double ang_error = m_target - m_chassis->getHeading();
 
@@ -304,11 +304,11 @@ void TuningHelper::runAngle() {
                 // clear the screen
                 m_controller.clear();
                 // print "SETTLED"
-                pros::delay(50);
+                pros::delay(80);
                 m_controller.print(0, 0, "SETTLED");
-                pros::delay(50);
+                pros::delay(80);
                 m_controller.print(0, 0, "A -> reset");
-                pros::delay(50);
+                pros::delay(80);
 
                 m_hasRun = true;
 
@@ -328,6 +328,7 @@ void TuningHelper::update(TuningCompoment comp, double value) {
         m_constants.kP = value;
         // update the controller screen
         m_controller.clear_line(0);
+        pros::delay(50);
         m_controller.print(0, 0, "kP: %f", value);
         break;
 
@@ -336,6 +337,7 @@ void TuningHelper::update(TuningCompoment comp, double value) {
         m_constants.kI = value;
         // update the controller screen
         m_controller.clear_line(0);
+        pros::delay(50);
         m_controller.print(0, 0, "kI: %f", value);
         break;
 
@@ -344,6 +346,7 @@ void TuningHelper::update(TuningCompoment comp, double value) {
         m_constants.kD = value;
         // update the controller screen
         m_controller.clear_line(0);
+        pros::delay(50);
         m_controller.print(0, 0, "kD: %f", value);
         break;
 
@@ -352,20 +355,22 @@ void TuningHelper::update(TuningCompoment comp, double value) {
         m_target = value;
         // update the controller screen
         m_controller.clear_line(1);
+        pros::delay(50);
         m_controller.print(1, 0, "Target: %f", value);
         break;
 
     case TuningCompoment::ERROR:
         // update the controller screen
-        if (pros::millis() - m_lastUpdate < 50) return;
+        if (pros::millis() - m_lastUpdate < 80) return;
         m_controller.clear_line(2);
+        pros::delay(50);
         m_controller.print(2, 0, "Error: %f", value);
         break;
     }
 
-    // must delay 50ms or update won't be applied
-    if (comp != TuningCompoment::ERROR && pros::millis() - m_lastUpdate < 50) {
-        pros::delay(50 - (pros::millis() - m_lastUpdate));
+    // must delay 80ms or update won't be applied
+    if (comp != TuningCompoment::ERROR && pros::millis() - m_lastUpdate < 80) {
+        pros::delay(80);
     }
 
     // update the controller
@@ -373,5 +378,7 @@ void TuningHelper::update(TuningCompoment comp, double value) {
         m_lin->setConstants(m_constants);
         m_ang->setConstants(m_constants);
     }
+
+    std::cout << "Constants: " << m_ang->getConstants(0).kP << ", " << m_ang->getConstants(0).kI << ", " << m_ang->getConstants(0).kD << std::endl;
 }
 }

@@ -47,19 +47,27 @@ auto hc = std::make_shared<reauto::controller::PIDController>(hcConstants, hcExi
 auto profile = std::make_shared<reauto::TrapezoidalProfile>(chassis, constants, hc);
 
 std::vector<IPIDConstants> linConstants = {
-    {14.97, 0.0, 1.51, 3},
+    {0, 0, 0, 0}
+};
+
+/*
+lin:
+{14.97, 0.0, 1.51, 3},
     {10.4, 0, 1.3, 6},
     {9.3, 0, 0.85, 12},
     {8.22, 0, 0.9, 18},
-    {10.79, 0, 1.29, 24},
-};
+    {10.79, 0, 1.29, 24},*/
 
 std::vector<IPIDConstants> angConstants = {
-    {6.2, 0, 0.39, 15},
+    {0, 0, 0, 0}
+};
+
+/*
+ang:
+{6.2, 0, 0.39, 15},
     {5.2, 0, 0.485, 30},
     {5.2, 0, 0.502, 45},
-    {5.18, 0, 0.59, 90},
-};
+    {5.18, 0, 0.59, 90},*/
 
 PIDExits linExits = {
     0.1,
@@ -187,7 +195,6 @@ void autonomous()
  */
 void opcontrol()
 {
-  /*
   chassis->setSlewDrive(24.0, 5.0);
   chassis->setDriveExponent(3);
   chassis->setControllerDeadband(12);
@@ -293,8 +300,5 @@ void opcontrol()
 
     debug++;
     pros::delay(15);
-  }*/
-
-  // auto tuner!!!
-  helper->runAngle();
+  }
 }
