@@ -23,6 +23,13 @@ public:
     // check if the controller is settled
     bool settled() override;
 
+    // set the controller constants
+    void setConstants(PIDConstants constants);
+    void setConstants(std::vector<IPIDConstants> constants);
+
+    // get the controller constants
+    PIDConstants getConstants(double error);
+
 private:
     double m_target = 0;
     double m_error = 0;

@@ -16,13 +16,13 @@ pros::Motor cata(4);
 #define CATA_SPEED 127
 
 auto chassis =
-    reauto::ChassisBuilder<>()
-        .motors({-20, -6, 1}, {5, 3, -2}, pros::Motor_Gears::blue)
-        .controller(master)
-        .imu(7)
-        .trackingWheels({-12, 1.168}, {11, 4.51705}, 2.75, true)
-        .setTrackWidth(11_in)
-        .build();
+reauto::ChassisBuilder<>()
+.motors({ -20, -6, 1 }, { 5, 3, -2 }, pros::Motor_Gears::blue)
+.controller(master)
+.imu(7)
+.trackingWheels({ -12, 1.168 }, { 11, 4.51705 }, 2.75, true)
+.setTrackWidth(11_in)
+.build();
 
 // velocities in in/s
 reauto::TrapezoidalProfileConstants constants = {
@@ -39,9 +39,9 @@ PIDExits hcExits = {
     0.85,
     60,
     150,
-    400};
+    400 };
 
-PIDConstants hcConstants = {3.8, 0, 0};
+PIDConstants hcConstants = { 3.8, 0, 0 };
 
 auto hc = std::make_shared<reauto::controller::PIDController>(hcConstants, hcExits);
 auto profile = std::make_shared<reauto::TrapezoidalProfile>(chassis, constants, hc);
@@ -66,19 +66,21 @@ PIDExits linExits = {
     0.4,
     50,
     140,
-    250};
+    250 };
 
 PIDExits angExits = {
     0.5,
     1,
     60,
     150,
-    250};
+    250 };
 
-auto linearPID = std::make_shared<reauto::controller::PIDController>(linConstants, linExits, 0, 16);
-auto angularPID = std::make_shared<reauto::controller::PIDController>(angConstants, angExits, 10, 0);
+auto linearPID = std::make_shared<reauto::controller::PIDController>(linConstants, linExits, 0, 32);
+auto angularPID = std::make_shared<reauto::controller::PIDController>(angConstants, angExits, 7);
 
 auto controller = std::make_shared<reauto::MotionController>(chassis, linearPID.get(), angularPID.get(), 3.2);
+
+auto helper = std::make_shared<reauto::TuningHelper>(master, chassis, linearPID, angularPID);
 
 void initialize()
 {
@@ -146,14 +148,14 @@ void autonomous()
 
   // profile->compute(24_in);
   // profile->followLinear();
-  chassis->setPose({0, 0, 0_deg});
+  chassis->setPose({ 0, 0, 0_deg });
 
   // get the roller
   controller->drive(2.1, 90_pct, 0, 0, true);
   intakeMotor.move_relative(350, 600);
   pros::delay(150);
   // go shoot
-  controller->drive({-6, 1.7}, 100_pct, true);
+  controller->drive({ -6, 1.7 }, 100_pct, true);
   fireCata();
   pros::delay(400);
 
@@ -185,6 +187,7 @@ void autonomous()
  */
 void opcontrol()
 {
+  /*
   chassis->setSlewDrive(24.0, 5.0);
   chassis->setDriveExponent(3);
   chassis->setControllerDeadband(12);
@@ -290,5 +293,8 @@ void opcontrol()
 
     debug++;
     pros::delay(15);
-  }
+  }*/
+
+  // auto tuner!!!
+  helper->runAngle();
 }

@@ -43,6 +43,18 @@ void PIDController::setTarget(double target, bool reset) {
     if (reset) resetController();
 }
 
+void PIDController::setConstants(PIDConstants constants) {
+    m_constantTable = InterpolatedConstants({ {constants.kP, constants.kI, constants.kD, 0} });
+}
+
+void PIDController::setConstants(std::vector<IPIDConstants> constants) {
+    m_constantTable = InterpolatedConstants(constants);
+}
+
+PIDConstants PIDController::getConstants(double error) {
+    return m_constantTable.get(error);
+}
+
 double PIDController::calculate(double error) {
     // time is current millis - last millis
     // we use this method to increase accuracy

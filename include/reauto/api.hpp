@@ -31,3 +31,6 @@
 
 // include filters
 #include "reauto/filter/SMAFilter.hpp"
+
+// include utilities
+#include "reauto/tuner/TuningHelper.hpp"
