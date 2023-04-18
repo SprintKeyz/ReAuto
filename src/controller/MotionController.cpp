@@ -212,8 +212,91 @@ Point MotionController::calcCarrotPoint(Point start, Pose target, double leadToP
     return { boomerangX, boomerangY };
 }
 
-void MotionController::chainDrive(std::vector<Pose> points, std::vector<bool> reverses, double exitErrorPerPoin) {
+void MotionController::chainDrive(std::vector<Pose> points, std::vector<bool> reverses, double exitErrorPerPoint) {
+    // our linear error is dist to the final point
+    // our angular error is the angle to the next point
+    // we force exit when we are within exitErrorPerPoint of the next point
 
+    // calc distance and angle errors
+    Point initial = { m_chassis->getPose().x, m_chassis->getPose().y };
+
+    // get distance and angle to point
+    double dist = calc::distance(initial, { points.back().x, points.back().y });
+    double angle = math::wrap180(calc::angleDifference(initial, target) - m_chassis->getHeading());
+
+    // tips: disable turning when close to the target (within a few inches) and multiply lateral error by cos(ang error)
+
+    // set PID targets
+    m_linear->setTarget(dist);
+    m_angular->setTarget(angle);
+
+    // set last target angle
+    m_lastTargetAngle = angle;
+
+    // update!
+    while (!m_linear->settled())
+    {
+        // check max time
+        if (maxTime != 0 && m_processTimer > maxTime)
+            break;
+
+        Point current = { m_chassis->getPose().x, m_chassis->getPose().y };
+
+        dist = calc::distance(current, target);
+        angle = math::wrap180(calc::angleDifference(current, target) - m_chassis->getHeading());
+
+        // check force exit error
+        if (forceExitError != 0 && std::abs(dist) < forceExitError)
+            break;
+
+        dist *= cos(math::degToRad(angle));
+
+        if (reverse || angle > 90)
+        {
+            angle = math::wrap180(angle + 180);
+        }
+
+        double distOutput = m_linear->calculate(dist);
+        double angOutput = m_angular->calculate(angle);
+
+        // if we are physically close and the total movement was somewhat large, we can disable turning
+        // the 7.5 is from lemlib, which I'm basing this on
+        bool closeToTarget = (calc::distance(current, target) < 5);
+        if (closeToTarget)
+        {
+            angOutput = 0;
+        }
+
+        // cap the linear speeds
+        distOutput = std::clamp(distOutput, -maxSpeed, maxSpeed);
+
+        // if thru, set linear speed to max
+        if (thru)
+            distOutput = maxSpeed;
+
+        // calculate speeds
+        double lSpeed = distOutput + angOutput;
+        double rSpeed = distOutput - angOutput;
+
+        // limit the speeds to respect max speed
+        double speedRatio = std::max(std::abs(lSpeed), std::abs(rSpeed)) / maxSpeed;
+        if (speedRatio > 1)
+        {
+            lSpeed /= speedRatio;
+            rSpeed /= speedRatio;
+        }
+
+        // set the speeds
+        m_chassis->setVoltage(lSpeed, rSpeed);
+
+        // delay
+        pros::delay(MOTION_TIMESTEP);
+        m_processTimer += MOTION_TIMESTEP;
+    }
+
+    if (forceExitError == 0)
+        m_chassis->brake();
+    m_processTimer = 0;
 }
 
 // boomerang
