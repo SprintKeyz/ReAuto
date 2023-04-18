@@ -197,9 +197,21 @@ void autonomous()
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
+
+void computeDistCenter() {
+  double currentHeading = chassis->getHeading(true);
+  double distCenterWheel = chassis->getTrackingWheels()->center->getDistanceTraveled();
+  double distBackWheel = chassis->getTrackingWheels()->back->getDistanceTraveled();
+
+  std::cout << "center distance: " << distCenterWheel/currentHeading << std::endl;
+  std::cout << "back distance: " << distBackWheel/currentHeading << std::endl;
+}
+
 void opcontrol()
 {
-  controller->drive(TURN_AMT);
+  // controller->drive(TURN_AMT);
+  controller->turn(90);
+  computeDistCenter();
 
   chassis->setSlewDrive(24.0, 5.0);
   chassis->setDriveExponent(3);

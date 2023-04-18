@@ -89,7 +89,7 @@ public:
     void arcade(double speedScale = 127);
 
     // get the current heading
-    double getHeading() const;
+    double getHeading(bool rad = false) const;
 
     // set the current heading (0 to 360)
     void setHeading(double deg);

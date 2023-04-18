@@ -262,9 +262,9 @@ void MotionChassis::arcade(double speedScale) {
     m_currentRightVoltage = right;
 }
 
-double MotionChassis::getHeading() const {
+double MotionChassis::getHeading(bool rad) const {
     // wrapped [-180, 180] by default
-    return m_imu->getHeading();
+    return m_imu->getHeading(rad);
 }
 
 void MotionChassis::setHeading(double deg) {
