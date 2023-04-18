@@ -98,10 +98,17 @@ double PIDController::calculate(double error) {
     return output;
 }
 
+int debug = 0; 
+
 bool PIDController::settled() {
     // check small error
+    // print error
+    if (debug == 10) {
+        std::cout << "Error: " << m_error << std::endl;
+        debug = 0;
+    }
+    debug++;
     if (fabs(m_error) <= m_exits.smallError) {
-        std::cout << "TRUE" << std::endl;
         m_smallErrorTimer += MOTION_TIMESTEP;
         m_largeErrorTimer = 0;
 
@@ -117,7 +124,6 @@ bool PIDController::settled() {
 
     // check large error
     if (fabs(m_error) <= m_exits.largeError && fabs(m_error) > m_exits.smallError) {
-        std::cout << "TRUE LARGE" << std::endl;
         m_largeErrorTimer += MOTION_TIMESTEP;
         m_smallErrorTimer = 0;
 

@@ -41,14 +41,17 @@ PIDExits hcExits = {
     150,
     400 };
 
-PIDConstants hcConstants = { 3.8, 0, 0 };
+PIDConstants hcConstants = { 2.1, 0, 0 };
 
 auto hc = std::make_shared<reauto::controller::PIDController>(hcConstants, hcExits);
 auto profile = std::make_shared<reauto::TrapezoidalProfile>(chassis, constants, hc);
 
 std::vector<IPIDConstants> linConstants = {
-    {0, 0, 0, 0}
+    {28.2, 52, 3.7, 0},
+    {28.7, 52, 3.71, 6}
 };
+
+#define TURN_AMT 0
 
 /*
 lin:
@@ -59,7 +62,8 @@ lin:
     {10.79, 0, 1.29, 24},*/
 
 std::vector<IPIDConstants> angConstants = {
-    {0, 0, 0, 0}
+    {6.802, 20, 0.72, 0},
+    {6.8, 20, 0.76, 90}
 };
 
 /*
@@ -83,8 +87,8 @@ PIDExits angExits = {
     150,
     250 };
 
-auto linearPID = std::make_shared<reauto::controller::PIDController>(linConstants, linExits, 0, 32);
-auto angularPID = std::make_shared<reauto::controller::PIDController>(angConstants, angExits, 7);
+auto linearPID = std::make_shared<reauto::controller::PIDController>(linConstants, linExits, 2.2);
+auto angularPID = std::make_shared<reauto::controller::PIDController>(angConstants, angExits, 10);
 
 auto controller = std::make_shared<reauto::MotionController>(chassis, linearPID.get(), angularPID.get(), 3.2);
 
@@ -195,6 +199,8 @@ void autonomous()
  */
 void opcontrol()
 {
+  controller->drive(TURN_AMT);
+
   chassis->setSlewDrive(24.0, 5.0);
   chassis->setDriveExponent(3);
   chassis->setControllerDeadband(12);
