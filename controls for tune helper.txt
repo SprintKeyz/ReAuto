@@ -1,0 +1,22 @@
+auto tuner:
+
+controller:
+
+"k<P/I/D>: <value>"
+"target: <angle/dist target>"
+"error: <error>
+
+brain:
+
+print constants
+print error
+
+---
+
+controls:
+
+left/right arrows toggle set kP, kD, kI
+up/down change selected item value
+"B" to change distance/angle
+"A" to run
+"Y" to exit

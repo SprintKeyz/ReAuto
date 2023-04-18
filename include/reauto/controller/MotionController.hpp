@@ -18,7 +18,7 @@ public:
     // thru means the controller will not dip below its max speed (it will finish at max speed)
     void drive(double distance, double maxSpeed = 127, double maxTime = 0, double forceExitError = 0, bool thru = false);
     void drive(Point target, double maxSpeed = 127, bool reverse = false, double maxTime = 0, double forceExitError = 0, bool thru = false);
-    void driveToPose(Pose target, double leadToPose = 0.6, double maxSpeed = 127, double maxTime = 0, double forceExitError = 0, bool thru = false);
+    void driveToPose(Pose target, double leadToPose = 0.6, double maxSpeed = 127, bool reverse = false, double maxTime = 0, double forceExitError = 0, bool thru = false);
     void turn(double angle, double maxSpeed = 127, bool relative = false, double maxTime = 0, double forceExitError = 0, bool thru = false);
     void turn(Point target, double maxSpeed = 127, double maxTime = 0, double forceExitError = 0, bool thru = false);
 
@@ -38,5 +38,15 @@ private:
 
     // for heading control (just a P/PID controller)
     controller::PIDController* m_headingController = nullptr;
+
+    // store the last target angle! this allows heading correct to
+    // lock to the desired angle instead of whatever the current angle is
+    double m_lastTargetAngle = 0;
+
+    // for drive to pose
+    Point calcThirdPoint(Point start, Pose target, double leadToPose);
+
+    // calc carrot point
+    Point calcCarrotPoint(Point start, Pose target, double leadToPose);
 };
 }

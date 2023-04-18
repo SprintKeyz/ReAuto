@@ -26,9 +26,8 @@ MotionController::MotionController(std::shared_ptr<MotionChassis> chassis, contr
 void MotionController::drive(double distance, double maxSpeed, double maxTime, double forceExitError, bool thru)
 {
     m_linear->setTarget(distance);
-    double initialAngle = m_chassis->getHeading();
     if (m_headingController != nullptr)
-        m_headingController->setTarget(initialAngle);
+        m_headingController->setTarget(m_lastTargetAngle);
 
     m_initialDistance = m_chassis->getTrackingWheels()->center->getDistanceTraveled();
 
@@ -57,7 +56,7 @@ void MotionController::drive(double distance, double maxSpeed, double maxTime, d
                 break;
 
             double linError = distance - (m_chassis->getTrackingWheels()->center->getDistanceTraveled() - m_initialDistance);
-            double angError = initialAngle - m_chassis->getHeading();
+            double angError = m_lastTargetAngle - m_chassis->getHeading();
 
             // check force exit error
             if (forceExitError != 0 && std::abs(linError) < forceExitError)
@@ -111,6 +110,9 @@ void MotionController::drive(Point target, double maxSpeed, bool reverse, double
     // set PID targets
     m_linear->setTarget(dist);
     m_angular->setTarget(angle);
+
+    // set last target angle
+    m_lastTargetAngle = angle;
 
     // update!
     while (!m_linear->settled())
@@ -178,53 +180,87 @@ void MotionController::drive(Point target, double maxSpeed, bool reverse, double
     m_processTimer = 0;
 }
 
-Point calcBoomerangPoint(Pose initial, Pose target, double leadToPose)
+// calculate third point for boomerang
+Point MotionController::calcThirdPoint(Point start, Pose target, double leadToPose)
 {
-    // calc distance and angle errors
-    double dist = calc::distance({ initial.x, initial.y }, { target.x, target.y });
-    double angle = std::atan2(target.y - initial.y, target.x - initial.x) - initial.theta.value_or(0);
+    double h = sqrt(pow(start.x - target.x, 2) + pow(start.y - target.y, 2));
+    double x = target.x - (h * sin(math::degToRad(target.theta.value()))) * leadToPose;
+    double y = target.y - (h * cos(math::degToRad(target.theta.value()))) * leadToPose;
 
-    return {
-        initial.x + (dist - leadToPose) * std::cos(angle),
-        initial.y + (dist - leadToPose) * std::sin(angle) };
+    return { x, y };
+}
+
+// caclulate current target point for boomerang
+Point MotionController::calcCarrotPoint(Point start, Pose target, double leadToPose)
+{
+    // get current pose
+    Pose current = m_chassis->getPose();
+
+    // t is a value 0-1 that represents how far along the line we are
+    // to calculate it, we find the dist from the start to the current point, and divide by the dist from the start to the target
+    double t = calc::distance(start, { current.x, current.y }) / calc::distance(start, { target.x, target.y });
+
+    // if t is greater than 1, we are past the target point, so we just return the target point
+    if (t > 1)
+        return { target.x, target.y };
+
+    // calculate the carrot point
+    Point three = calcThirdPoint(start, target, leadToPose);
+    double boomerangX = ((1 - t) * ((1 - t) * start.x + t * three.x) + t * ((1 - t) * three.x + t * target.x));
+    double boomerangY = ((1 - t) * ((1 - t) * start.y + t * three.y) + t * ((1 - t) * three.y + t * target.y));
+
+    return { boomerangX, boomerangY };
 }
 
 // boomerang
-void MotionController::driveToPose(Pose target, double leadToPose, double maxSpeed, double maxTime, double forceExitError, bool thru)
+void MotionController::driveToPose(Pose target, double leadToPose, double maxSpeed, bool reverse, double maxTime, double forceExitError, bool thru)
 {
-    bool firstRun = true;
+    // calc distance and angle errors
+    Point initial = { m_chassis->getPose().x, m_chassis->getPose().y };
 
-    while (true)
+    // get distance and angle to point
+    double distToTarget = calc::distance(initial, { target.x, target.y });
+
+    // set PID targets - angle target is our current heading at first
+    m_linear->setTarget(distToTarget);
+    m_angular->setTarget(m_chassis->getHeading());
+
+    // set last target angle
+    // this is the target theta because we are using boomerang!
+    m_lastTargetAngle = target.theta.value();
+
+    // update!
+    while (!m_linear->settled())
     {
-        // calc boomerang point
-        Point current = { m_chassis->getPose().x, m_chassis->getPose().y };
-
         // check max time
         if (maxTime != 0 && m_processTimer > maxTime)
             break;
 
-        // calc boomerang point
-        Point boomerang = calcBoomerangPoint(m_chassis->getPose(), target, leadToPose);
+        Point current = { m_chassis->getPose().x, m_chassis->getPose().y };
 
-        // drive to boomerang point
-        double dist = calc::distance(current, boomerang);
-        double angle = math::wrap180(calc::angleDifference(current, boomerang) - m_chassis->getHeading());
+        double distError = calc::distance(current, { target.x, target.y });
+        // angle error is the angle to the boomerang point
+        Point boomerang = calcCarrotPoint(initial, target, leadToPose);
 
-        // calc distance to target for force exit error
-        double distToTarget = calc::distance(boomerang, { target.x, target.y });
+        // get angle to boomerang point - this is our target angle AND our angle error
+        // our target always changes so our error always changes...
+        double angTarget = math::wrap180(calc::angleDifference(current, boomerang) - m_chassis->getHeading());
+
+        // set our target angle to the angle to the boomerang point
 
         // check force exit error
-        if (forceExitError != 0 && distToTarget < forceExitError)
+        if (forceExitError != 0 && std::abs(distError) < forceExitError)
             break;
 
-        // set PID targets
-        m_linear->setTarget(dist, firstRun);
-        m_angular->setTarget(angle, firstRun);
-        firstRun = false;
+        // distError *= cos(math::degToRad(angleError)); - unnecessary because it's a boomerang movement!
 
-        // update!
-        double distOutput = m_linear->calculate(dist);
-        double angOutput = m_angular->calculate(angle);
+        if (reverse)
+        {
+            angTarget = math::wrap180(angTarget + 180);
+        }
+
+        double distOutput = m_linear->calculate(distError);
+        double angOutput = m_angular->calculate(angTarget);
 
         // cap the linear speeds
         distOutput = std::clamp(distOutput, -maxSpeed, maxSpeed);
@@ -267,11 +303,13 @@ void MotionController::turn(double angle, double maxSpeed, bool relative, double
     if (relative)
     {
         m_angular->setTarget(m_chassis->getHeading() + angle);
+        m_lastTargetAngle = m_chassis->getHeading() + angle;
     }
 
     else
     {
         m_angular->setTarget(angle);
+        m_lastTargetAngle = angle;
     }
 
     while (!m_angular->settled())
