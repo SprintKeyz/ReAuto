@@ -212,6 +212,10 @@ Point MotionController::calcCarrotPoint(Point start, Pose target, double leadToP
     return { boomerangX, boomerangY };
 }
 
+void MotionController::chainDrive(std::vector<Pose> points, std::vector<bool> reverses, double exitErrorPerPoin) {
+
+}
+
 // boomerang
 void MotionController::driveToPose(Pose target, double leadToPose, double maxSpeed, bool reverse, double maxTime, double forceExitError, bool thru)
 {

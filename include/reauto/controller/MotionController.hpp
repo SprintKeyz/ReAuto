@@ -21,6 +21,7 @@ public:
     void driveToPose(Pose target, double leadToPose = 0.6, double maxSpeed = 127, bool reverse = false, double maxTime = 0, double forceExitError = 0, bool thru = false);
     void turn(double angle, double maxSpeed = 127, bool relative = false, double maxTime = 0, double forceExitError = 0, bool thru = false);
     void turn(Point target, double maxSpeed = 127, double maxTime = 0, double forceExitError = 0, bool thru = false);
+    void chainDrive(std::vector<Pose> points, std::vector<bool> reverses, double exitErrorPerPoint = 0.3);
 
 private:
     // chassis
