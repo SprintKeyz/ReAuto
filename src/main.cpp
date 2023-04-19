@@ -20,7 +20,7 @@ reauto::ChassisBuilder<>()
 .motors({ -20, -6, 1 }, { 5, 3, -2 }, pros::Motor_Gears::blue)
 .controller(master)
 .imu(7)
-.trackingWheels({ -12, 1.168 }, { 11, 4.51705 }, 2.75, true)
+.trackingWheels({ -12, 0.001 }, { 11, 4.282 }, 2.75, true)
 .setTrackWidth(11_in)
 .build();
 
@@ -48,10 +48,12 @@ auto profile = std::make_shared<reauto::TrapezoidalProfile>(chassis, constants, 
 
 std::vector<IPIDConstants> linConstants = {
     {28.2, 52, 3.7, 0},
-    {28.7, 52, 3.71, 6}
+    {28.7, 52, 3.71, 6},
+    {24.5, 74, 3.28, 12},
+    {24.4, 69, 3.28, 24},
 };
 
-#define TURN_AMT 0
+#define TURN_AMT 24
 
 /*
 lin:
@@ -63,7 +65,7 @@ lin:
 
 std::vector<IPIDConstants> angConstants = {
     {6.802, 20, 0.72, 0},
-    {6.8, 20, 0.76, 90}
+    {6.78, 20, 0.767, 90}
 };
 
 /*
@@ -74,23 +76,23 @@ ang:
     {5.18, 0, 0.59, 90},*/
 
 PIDExits linExits = {
-    0.1,
-    0.4,
+    0.25,
+    0.75,
     50,
-    140,
+    80,
     250 };
 
 PIDExits angExits = {
     0.5,
     1,
-    60,
-    150,
+    50,
+    80,
     250 };
 
-auto linearPID = std::make_shared<reauto::controller::PIDController>(linConstants, linExits, 2.2);
+auto linearPID = std::make_shared<reauto::controller::PIDController>(linConstants, linExits, 2.5);
 auto angularPID = std::make_shared<reauto::controller::PIDController>(angConstants, angExits, 10);
 
-auto controller = std::make_shared<reauto::MotionController>(chassis, linearPID.get(), angularPID.get(), 3.2);
+auto controller = std::make_shared<reauto::MotionController>(chassis, linearPID.get(), angularPID.get(), 0);
 
 auto helper = std::make_shared<reauto::TuningHelper>(master, chassis, linearPID, angularPID);
 
@@ -150,6 +152,216 @@ void fireCata()
   pros::Task fireCataTask(cataTask);
 }
 
+void soloWP() {
+  chassis->setPose({ 0, 0, 0_deg });
+
+  // get the roller
+  controller->drive(6.4);
+  intakeMotor.move_relative(240, 600);
+  pros::delay(150);
+  // go shoot
+  controller->drive(-13, 100_pct);
+  controller->turn(-11, 100_pct);
+  fireCata();
+  pros::delay(400);
+
+  // get three stack
+  controller->drive(2.2);
+  intakeMotor = -127;
+  controller->turn(-135);
+  controller->drive(36, 40_pct);
+
+  // shoot
+  controller->turn(-35, 100_pct);
+  controller->drive(-5, 100_pct);
+  fireCata();
+  pros::delay(400);
+
+  // get three stack
+  controller->turn(-135);
+  controller->drive(42, 40_pct);
+
+  // turn to shoot
+  controller->turn(-61, 100_pct);
+  controller->drive(-5, 100_pct);
+
+  // shoot
+  fireCata();
+  pros::delay(400);
+
+  //intakeMotor = 0;
+
+  // turn and get roller
+  controller->turn(-135);
+  controller->drive(33);
+  controller->turn(-90);
+  controller->drive(3.8);
+
+  // get roller
+  intakeMotor.move_relative(240, 600);
+}
+
+void autoTwoShots() {
+  chassis->setPose({ 0, 0, 0_deg });
+
+  // get the roller
+  controller->drive(6.4);
+  intakeMotor.move_relative(240, 600);
+  pros::delay(150);
+  // go shoot
+  controller->drive(-13, 100_pct);
+  controller->turn(-11, 100_pct);
+  fireCata();
+  pros::delay(400);
+
+  // get three stack
+  controller->drive(2.2);
+  intakeMotor = -127;
+  controller->turn(-135);
+  controller->drive(36, 40_pct);
+
+  // shoot
+  controller->turn(-35, 100_pct);
+  controller->drive(-5, 100_pct);
+  fireCata();
+  pros::delay(400);
+}
+
+void soloWPNoFirstShot() {
+  chassis->setPose({ 0, 0, 0_deg });
+
+  // get the roller
+  controller->drive(6.4);
+  intakeMotor.move_relative(240, 600);
+  pros::delay(150);
+
+  // get three stack
+  controller->drive(-11.2);
+  intakeMotor = -127;
+  controller->turn(-135);
+  controller->drive(36, 40_pct);
+
+  // shoot
+  controller->turn(-35, 100_pct);
+  controller->drive(-5, 100_pct);
+  fireCata();
+  pros::delay(400);
+
+  // get three stack
+  controller->turn(-135);
+  controller->drive(42, 40_pct);
+
+  // turn to shoot
+  controller->turn(-61, 100_pct);
+  controller->drive(-5, 100_pct);
+
+  // shoot
+  fireCata();
+  pros::delay(400);
+
+  intakeMotor = 0;
+
+  // turn and get roller
+  controller->turn(-135);
+  controller->drive(33);
+  controller->turn(-90);
+  controller->drive(3.8);
+
+  // get roller
+  intakeMotor.move_relative(360, 600);
+}
+
+void skills() {
+  chassis->setPose({ 0, 0, 0_deg });
+
+  // get the roller
+  controller->drive(6.4);
+  intakeMotor.move_relative(360, 600);
+  pros::delay(150);
+  // go shoot
+  controller->drive(-13, 100_pct);
+  controller->turn(-11, 100_pct);
+  fireCata();
+  pros::delay(400);
+
+  // get three stack
+  controller->drive(2.2);
+  intakeMotor = -127;
+  controller->turn(-135);
+  controller->drive(36, 40_pct);
+
+  // shoot
+  controller->turn(-35, 100_pct);
+  controller->drive(-5, 100_pct);
+  fireCata();
+  pros::delay(400);
+
+  // get three stack
+  controller->turn(-135);
+  controller->drive(42, 40_pct);
+
+  // turn to shoot
+  controller->turn(-61, 100_pct);
+  controller->drive(-5, 100_pct);
+
+  // shoot
+  fireCata();
+  pros::delay(400);
+
+  intakeMotor = 0;
+
+  // turn and get roller
+  controller->turn(-135);
+  controller->drive(33);
+  controller->turn(-90);
+  controller->drive(3.8);
+
+  // get roller
+  intakeMotor.move_relative(360, 600);
+  pros::delay(150);
+
+  // back up
+  controller->drive(-7);
+  controller->turn(-115);
+
+  // expand
+  expansionPiston.extend();
+
+  /*controller->turn(-180);
+  controller->drive(16);
+
+  // spin roller
+  intakeMotor.move_relative(360, 600);
+  pros::delay(150);
+
+  // back up
+  controller->drive(-11);
+  controller->turn(-45);
+  controller->drive(-35, 40_pct);
+
+  // turn and shoot
+  controller->turn(135);
+  controller->drive(-5);
+  fireCata();
+  pros::delay(400);
+
+  // turn and get next 3
+  controller->turn(-45);
+  controller->drive(36, 40_pct);
+
+  // turn and shoot
+  controller->turn(-70);
+  fireCata();
+  pros::delay(400);
+
+  // turn and drive to corner
+  controller->turn(-35);
+  controller->drive(40);
+
+  // spin around to shoot
+  controller->turn(45);*/
+}
+
 void autonomous()
 {
   // profile->compute(18_in);
@@ -160,28 +372,11 @@ void autonomous()
 
   // profile->compute(24_in);
   // profile->followLinear();
-  chassis->setPose({ 0, 0, 0_deg });
-
-  // get the roller
-  controller->drive(2.1, 90_pct, 0, 0, true);
-  intakeMotor.move_relative(350, 600);
-  pros::delay(150);
-  // go shoot
-  controller->drive({ -6, 1.7 }, 100_pct, true);
-  fireCata();
-  pros::delay(400);
-
-  // get three stack
-  intakeMotor = -127;
-  controller->turn(-135_deg, 100_pct, false, 1100);
-  controller->drive(36, 35_pct);
-
-  // shoot
-  controller->turn(-37_deg, 100_pct, false, 1000);
-  controller->drive(-2, 100_pct, 0, 0);
-  pros::delay(400);
-  fireCata();
-  pros::delay(400);
+  
+  //soloWP();
+  //soloWPNoFirstShot();
+  // autoTwoShots();
+  skills();
 }
 
 /**
@@ -209,9 +404,10 @@ void computeDistCenter() {
 
 void opcontrol()
 {
-  // controller->drive(TURN_AMT);
-  controller->turn(90);
-  computeDistCenter();
+  //controller->drive({ 12, -10 }, 60_pct);
+  //controller->turn(90);
+  //controller->drive(-10, 60_pct);
+  //computeDistCenter();
 
   chassis->setSlewDrive(24.0, 5.0);
   chassis->setDriveExponent(3);
