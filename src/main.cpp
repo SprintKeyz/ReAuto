@@ -166,7 +166,7 @@ void soloWP() {
   pros::delay(400);
 
   // get three stack
-  controller->drive(3.5);
+  controller->drive(3.8);
   intakeMotor = -127;
   controller->turn(-135);
   controller->drive(36, 40_pct);
@@ -215,7 +215,7 @@ void autoTwoShots() {
   pros::delay(400);
 
   // get three stack
-  controller->drive(2.5);
+  controller->drive(3.8);
   intakeMotor = -127;
   controller->turn(-135);
   controller->drive(36, 40_pct);
@@ -383,7 +383,7 @@ void autonomous()
   // profile->followLinear();
   
   //soloWP();
-  //soloWPNoFirstShot();
+  soloWPNoFirstShot();
   //autoTwoShots();
   //skills();
   //rollerOnly();
