@@ -5,7 +5,7 @@
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
 pros::adi::DigitalIn cataLimit('A');
-pros::adi::Pneumatics cataPiston('B', false);
+pros::adi::Pneumatics cataPiston('B', true);
 
 pros::adi::Pneumatics expansionPiston('C', false);
 
@@ -166,7 +166,7 @@ void soloWP() {
   pros::delay(400);
 
   // get three stack
-  controller->drive(2.2);
+  controller->drive(3.5);
   intakeMotor = -127;
   controller->turn(-135);
   controller->drive(36, 40_pct);
@@ -236,10 +236,10 @@ void soloWPNoFirstShot() {
   pros::delay(150);
 
   // get three stack
-  controller->drive(-11.2);
+  controller->drive(-9.8);
   intakeMotor = -127;
   controller->turn(-135);
-  controller->drive(36, 40_pct);
+  controller->drive(36, 55_pct);
 
   // shoot
   controller->turn(-35, 100_pct);
@@ -374,9 +374,9 @@ void autonomous()
   // profile->followLinear();
   
   //soloWP();
-  //soloWPNoFirstShot();
-  // autoTwoShots();
-  skills();
+  soloWPNoFirstShot();
+  //autoTwoShots();
+  //skills();
 }
 
 /**
@@ -499,6 +499,10 @@ void opcontrol()
     {
       cataPiston.toggle();
       pros::delay(150);
+    }
+
+    if (master.get_digital(pros::E_CONTROLLER_DIGITAL_UP)) {
+      autonomous();
     }
 
     chassis->tank();
