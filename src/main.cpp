@@ -215,7 +215,7 @@ void autoTwoShots() {
   pros::delay(400);
 
   // get three stack
-  controller->drive(2.2);
+  controller->drive(2.5);
   intakeMotor = -127;
   controller->turn(-135);
   controller->drive(36, 40_pct);
@@ -269,6 +269,15 @@ void soloWPNoFirstShot() {
 
   // get roller
   intakeMotor.move_relative(360, 600);
+}
+
+void rollerOnly() {
+  chassis->setPose({ 0, 0, 0_deg });
+
+  // get the roller
+  controller->drive(6.4);
+  intakeMotor.move_relative(240, 600);
+  pros::delay(150);
 }
 
 void skills() {
@@ -374,9 +383,10 @@ void autonomous()
   // profile->followLinear();
   
   //soloWP();
-  soloWPNoFirstShot();
+  //soloWPNoFirstShot();
   //autoTwoShots();
   //skills();
+  //rollerOnly();
 }
 
 /**
