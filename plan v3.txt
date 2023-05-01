@@ -1,0 +1,10 @@
+plan v3:
+
+why the hell am i adding tons of feedforward support? this library should never be used for it.
+
+Just add a MotionChassis with odometry and build from there.
+
+I'll remove all FF type movements from chassis'
+
+controllers:
+

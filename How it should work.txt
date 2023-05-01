@@ -1,0 +1,170 @@
+How it should work:
+
+- RobotBase
+	- Pure Virtual
+	- What do all bases have in common?
+	- can set left/right voltage
+	- can set left/right velocity
+	- can drive for / turn for x distance/angle
+	- can brake
+	- has a brake mode
+	- has a gearset													
+
+- TankBase
+	- Implement functions from robot base
+
+- FeedForwardChassis
+	- Different constructors create different bases
+	- this is how the user accesses pure feedforward
+	- built with a builder function
+	- contains hardware info
+	- like: track width, gear ratio, wheel diam, gearset
+
+ex:
+
+new MotionChassis() c
+
+c->drive(10_in, 100_pct)
+c->turn(90_deg, 100_pct)
+c->setLeftVoltage(127)
+c->setRightVelocity(600)
+c->brake()
+
+internally:
+c -> tankbase.drive_for(in, speed)
+c -> tankbase.turn_for(deg, speed)
+c -> tankbase.left_pwr(v)
+c -> tankbase.left_vel(v)
+c -> tankbase.brake()
+
+----
+
+using feedback
+
+- FeedbackChassis
+	- extends motionchassis but includes sensor info
+	- built via builder pattern
+
+- OdomFeedbackChassis
+	- extends feedback chassis but includes odometry
+	- built via builder pattern
+
+- FeedbackController
+	- pure virtual
+	- target function
+	- settled function
+	- update(error) function
+	- output() function
+
+- PIDController
+	- implement functions
+	- ctor takes gains
+	- ctor takes exit conditions
+
+- MotionController
+	- takes in ptr to feedback chassis
+	- takes in linear, angular controllers and an optional third heading correct PID controller
+
+ex:
+
+new PIDController() d
+new PIDController() t
+
+MotionController c(d, t)
+
+c->drive(x, speed)
+c->turn(x, speed)
+
+or MotionControllerAsync
+
+c->setDriveTarget(t)
+c->setDriveMaxSpeed(s)
+
+----
+
+dilemma:
+
+we want to support odometry and movements like move({10, 10})
+the problem is these are done thru the controller, and we don't want
+PID controllers to have a move to point if the chassis has no odometry
+
+fixed! std::enable_if
+
+----
+
+names:
+
+RobotTemplate
+TankTemplate - impl
+
+FeedforwardChassis - pure ff
+FeedbackChassis - impl feedback
+OdomFeedbackChassis - impl odom
+
+FeedbackController
+PIDController
+PIDControllerVel - velocity PID controller
+BangBangController
+
+<here, we have the chance to impl more motion profiles / a base class>
+
+TrapezoidalProfile
+	- pass PID feedback controller
+	- pass constraints
+	- pass gains
+	- set gains method
+
+LinearTrapezoidalProfile
+	- impl
+
+AngularTrapezoidalProfile
+	- impl
+
+Both:
+(0 = default)
+compute(target, pMaxV = 0, pMaxA = 0)
+follow()
+
+ex:
+
+new TrapezoidalProfile(velcontroller, {maxV, maxA}, {kV, kA}) linear
+
+p->compute(10_in)
+p->compute(10_in, 100_in/s, 100_in/s^2)
+p->follow()
+
+PurePursuitController(AsyncMotionController) pp;
+pp->setPath(path)
+pp->follow()
+
+pure pursuit internally:
+- should be able to update the target continuously
+- derivative should not be an over time thing (can be reset constantly)
+- integral should not add up over the path
+---
+
+
+all types of chassis that we'll support
+
+- Tank
+- Mechanum (holo movement full support later)
+- X drive
+
+tank has L, R
+Mechanum has L, R
+
+we'll leave this to only support tank and mecahnum for now, but I'll leave the builder class template in place
+
+
+--- 
+
+OK. Let's rethink this.
+
+
+----
+
+Pure Pursuit:
+
+Waypoints used INTERNALLY only.
+
+Users create paths with poses. x=x, y=y, theta=max speed at point
