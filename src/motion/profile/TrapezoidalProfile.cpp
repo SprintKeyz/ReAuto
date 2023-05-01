@@ -8,6 +8,31 @@ TrapezoidalProfile::TrapezoidalProfile(std::shared_ptr<MotionChassis> chassis, T
     m_headingCorrector = headingCorrectController;
 }
 
+ProfileData TrapezoidalProfile::getProfileDataAtTime(double time) {
+    double pos = 0;
+    double vel = 0;
+    double acc = 0;
+    
+    if (time < m_timeToMaxV) {
+        vel = m_profileAccel * time;
+        acc = m_profileAccel;
+    }
+
+    else if (time < m_timeFromMaxV) {
+        vel = m_profileMaxV;
+        acc = 0;
+    }
+
+    else if (time < m_timeTotal) {
+        vel = m_profileMaxV - m_profileAccel * (time - m_timeFromMaxV);
+        acc = -m_profileAccel;
+    }
+
+    pos = m_prevPos + vel * time;
+    m_prevPos = pos;
+    return { pos, vel, acc };
+}
+
 void TrapezoidalProfile::compute(double target, double maxV, double maxA)
 {
     m_target = target;
@@ -15,72 +40,28 @@ void TrapezoidalProfile::compute(double target, double maxV, double maxA)
     m_maxAcceleration = maxA == 0 ? m_constants.maxAcceleration : maxA;
 
     // init some variables
-    double timeToMaxV = m_maxVelocity / m_maxAcceleration; // time to reach max velocity
-    double timeFromMaxV = 0; // time to start decelerating
-    double timeTotal = 0; // total time of the profile
-    double profileMaxV = 0; // the max velocity of the profile
+    m_timeToMaxV = m_maxVelocity / m_maxAcceleration; // time to reach max velocity
+    m_timeFromMaxV = 0; // time to start decelerating
+    m_timeTotal = 0; // total time of the profile
+    m_profileMaxV = 0; // the max velocity of the profile
 
-    std::vector<double> times = { 0 };
-    std::vector<double> positions = { 0 };
-    std::vector<double> velocities = { 0 };
-    std::vector<double> accelerations = { 0 };
-
-    double a = m_maxVelocity / timeToMaxV;
-    double timeAtMaxV = m_target / m_maxVelocity - timeToMaxV;
+    m_profileAccel = m_maxVelocity / m_timeToMaxV;
+    double timeAtMaxV = m_target / m_maxVelocity - m_timeToMaxV;
 
     // check if the profile is a triangle or trapezoid
-    if (m_maxVelocity * timeToMaxV > m_target) {
+    if (m_maxVelocity * m_timeToMaxV > m_target) {
         // triangle profile
-        timeToMaxV = sqrt(m_target / a);
-        timeFromMaxV = timeToMaxV;
-        timeTotal = 2.0 * timeToMaxV;
-        profileMaxV = a * timeToMaxV;
+        m_timeToMaxV = sqrt(m_target / m_profileAccel);
+        m_timeFromMaxV = m_timeToMaxV;
+        m_timeTotal = 2.0 * m_timeToMaxV;
+        m_profileMaxV = m_profileAccel * m_timeToMaxV;
     }
 
     else {
         // trapezoid profile
-        timeFromMaxV = timeAtMaxV + timeToMaxV;
-        timeTotal = timeFromMaxV + timeToMaxV;
-        profileMaxV = m_maxVelocity;
-    }
-
-    while (times.back() < timeTotal) {
-        double time = times.back() + (MOTION_TIMESTEP / 1000.0); // seconds
-        times.push_back(time);
-
-        if (time < timeToMaxV) {
-            // accelerate to max velocity
-            velocities.push_back(a * time);
-            accelerations.push_back(a);
-        }
-
-        else if (time < timeFromMaxV) {
-            // cruise
-            velocities.push_back(profileMaxV);
-            accelerations.push_back(0);
-        }
-
-        else if (time < timeTotal) {
-            // decelerate to 0
-            double decel_time = time - timeFromMaxV;
-            velocities.push_back(profileMaxV - a * decel_time);
-            accelerations.push_back(-a);
-        }
-
-        else {
-            // stop
-            velocities.push_back(0);
-            accelerations.push_back(0);
-        }
-
-        positions.push_back(positions.back() + velocities.back() * (MOTION_TIMESTEP/1000.0));
-    }
-
-    m_profile.setProfile(times, positions, velocities, accelerations);
-
-    // print times
-    for (int i = 0; i < times.size(); i++) {
-        std::cout << times[i] << ", ";
+        m_timeFromMaxV = timeAtMaxV + m_timeToMaxV;
+        m_timeTotal = m_timeFromMaxV + m_timeToMaxV;
+        m_profileMaxV = m_maxVelocity;
     }
 }
 
@@ -98,8 +79,8 @@ void TrapezoidalProfile::followLinear() {
         m_headingCorrector->setTarget(initialAngle);
     }
 
-    while (!m_profile.isConcluded(time)) {
-        MotionProfileData setpoint = m_profile.get(time);
+    while (m_timeTotal > time) {
+        ProfileData setpoint = getProfileDataAtTime(time);
 
         std::cout << "time: " << time << ", position: " << setpoint.position << ", velocity: " << setpoint.velocity << ", acceleration: " << setpoint.acceleration << std::endl;
 

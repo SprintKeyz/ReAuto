@@ -2,10 +2,15 @@
 
 #include "reauto/chassis/impl/MotionChassis.hpp"
 #include "reauto/controller/impl/PIDController.hpp"
-#include "reauto/motion/profile/MotionProfile.hpp"
 #include <memory>
 
 namespace reauto {
+struct ProfileData {
+    double position;
+    double velocity;
+    double acceleration;
+};
+
 struct TrapezoidalProfileConstants {
     double maxVelocity;
     double kVelocityScale; // kV
@@ -34,11 +39,18 @@ private:
     TrapezoidalProfileConstants m_constants;
 
     double m_target; // the current target
-    double m_maxVelocity; // the maximum velocity
-    double m_maxAcceleration; // the maximum acceleration
+    double m_maxVelocity; // the maximum velocity of the robot
+    double m_maxAcceleration; // the maximum acceleration of the robot
+    double m_profileMaxV = 0; // the max velocity of the profile
+    double m_profileAccel = 0; // the max acceleration of the profile
+    double m_timeToMaxV = 0; // the time to reach max velocity
+    double m_timeFromMaxV = 0; // the time to decelerate from max velocity
+    double m_timeTotal = 0; // the total profile time
 
-    // the actual profile, used like this:
-    // p.get(time).velocity, p.get(time).acceleration
-    MotionProfile m_profile;
+    // prev position
+    double m_prevPos = 0;
+
+    // get our data at time t
+    ProfileData getProfileDataAtTime(double time);
 };
 }
