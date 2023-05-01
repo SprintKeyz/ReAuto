@@ -162,7 +162,7 @@ void MotionController::drive(Point target, double maxSpeed, bool reverse,
 
         // if we are physically close and the total movement was somewhat large, we
         // can disable turning the 7.5 is from lemlib, which I'm basing this on
-        bool closeToTarget = (calc::distance(current, target) < 5);
+        bool closeToTarget = (calc::distance(current, target) < 4);
         if (closeToTarget)
         {
             angOutput = 0;
