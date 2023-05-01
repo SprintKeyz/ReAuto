@@ -112,7 +112,7 @@ void MotionController::drive(double distance, double maxSpeed, double maxTime,
     }
 }
 
-void MotionController::drive(Point target, double maxSpeed, bool reverse,
+void MotionController::drive(Point target, double maxSpeed, bool invert,
     double maxTime, double forceExitError, bool thru)
 {
     // calc distance and angle errors
@@ -152,7 +152,7 @@ void MotionController::drive(Point target, double maxSpeed, bool reverse,
 
         dist *= cos(math::degToRad(angle));
 
-        if (reverse /*|| angle > 90*/)
+        if (invert /*|| angle > 90*/)
         {
             angle = math::wrap180(angle + 180);
         }
@@ -219,7 +219,7 @@ Point MotionController::calcCarrotPoint(Point start, Pose target,
 
 // boomerang
 void MotionController::driveToPose(Pose target, double leadToPose,
-    double maxSpeed, bool reverse,
+    double maxSpeed, bool invert,
     double maxTime, double forceExitError,
     bool thru)
 {
@@ -264,7 +264,7 @@ void MotionController::driveToPose(Pose target, double leadToPose,
         // distError *= cos(math::degToRad(angleError)); - unnecessary because it's
         // a boomerang movement!
 
-        if (reverse)
+        if (invert)
         {
             angTarget = math::wrap180(angTarget + 180);
         }

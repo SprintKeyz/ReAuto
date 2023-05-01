@@ -17,8 +17,8 @@ public:
     // exit error is the error at which the controller will FORCE exit
     // thru means the controller will not dip below its max speed (it will finish at max speed)
     void drive(double distance, double maxSpeed = 127, double maxTime = 0, double forceExitError = 0, bool thru = false);
-    void drive(Point target, double maxSpeed = 127, bool reverse = false, double maxTime = 0, double forceExitError = 0, bool thru = false);
-    void driveToPose(Pose target, double leadToPose = 0.6, double maxSpeed = 127, bool reverse = false, double maxTime = 0, double forceExitError = 0, bool thru = false);
+    void drive(Point target, double maxSpeed = 127, bool invert = false, double maxTime = 0, double forceExitError = 0, bool thru = false);
+    void driveToPose(Pose target, double leadToPose = 0.6, double maxSpeed = 127, bool invert = false, double maxTime = 0, double forceExitError = 0, bool thru = false);
     void turn(double angle, double maxSpeed = 127, bool relative = false, double maxTime = 0, double forceExitError = 0, bool thru = false);
     void turn(Point target, double maxSpeed = 127, double maxTime = 0, double forceExitError = 0, bool thru = false);
 
