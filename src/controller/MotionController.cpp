@@ -362,6 +362,74 @@ void MotionController::turn(double angle, double maxSpeed, bool relative,
     m_processTimer = 0;
 }
 
+void MotionController::swing(double angle, double maxSpeed, double forceOneSide, bool relative, double maxTime, double forceExitError, bool thru) {
+    // wrap angle
+    angle = math::wrap180(angle);
+
+    if (relative)
+    {
+        m_angular->setTarget(m_chassis->getHeading() + angle);
+        m_lastTargetAngle = m_chassis->getHeading() + angle;
+    }
+
+    else
+    {
+        m_angular->setTarget(angle);
+        m_lastTargetAngle = angle;
+    }
+
+    while (!m_angular->settled())
+    {
+        // check max time
+        if (maxTime != 0 && m_processTimer > maxTime)
+            return;
+
+        double error = angle - m_chassis->getHeading();
+
+        // check force exit error
+        if (forceExitError != 0 && std::abs(error) < forceExitError)
+            break;
+
+        double output = m_angular->calculate(error);
+        output = std::clamp(output, -maxSpeed, maxSpeed);
+
+        // if thru, set angular speed to max
+        if (thru)
+            output = maxSpeed;
+
+        // check what side to set output to
+        if (forceOneSide == 0) {
+            // pick fastest side
+            // powering right side turns right
+            if (output > 0) {
+                m_chassis->setVoltage(output, 0);
+            }
+
+            else {
+                m_chassis->setVoltage(0, output);
+            }
+        }
+
+        else if (forceOneSide == 1) {
+            // force left side
+            m_chassis->setVoltage(output, 0);
+        }
+
+        else if (forceOneSide == 2) {
+            // force right side
+            m_chassis->setVoltage(0, output);
+        }
+
+        // delay
+        pros::delay(MOTION_TIMESTEP);
+        m_processTimer += MOTION_TIMESTEP;
+    }
+
+    if (forceExitError == 0)
+        m_chassis->brake();
+    m_processTimer = 0;
+}
+
 void MotionController::turn(Point target, double maxSpeed, double maxTime,
     double forceExitError, bool thru)
 {

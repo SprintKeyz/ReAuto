@@ -22,6 +22,9 @@ public:
     void turn(double angle, double maxSpeed = 127, bool relative = false, double maxTime = 0, double forceExitError = 0, bool thru = false);
     void turn(Point target, double maxSpeed = 127, double maxTime = 0, double forceExitError = 0, bool thru = false);
 
+    // force one side makes one side always do the swinging instead of what's fastest (0 - fastest, 1 - left, 2 - right)
+    void swing(double angle, double maxSpeed = 127, double forceOneSide = 0, bool relative = false, double maxTime = 0, double forceExitError = 0, bool thru = false);
+
 private:
     // chassis
     std::shared_ptr<MotionChassis> m_chassis;
