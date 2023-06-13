@@ -77,12 +77,11 @@ void TrapezoidalProfile::followLinear() {
 
     if (m_headingCorrector != nullptr) {
         m_headingCorrector->setTarget(initialAngle);
+        std::cout << "heading corrector target: " << initialAngle << std::endl;
     }
 
     while (m_timeTotal > time) {
         ProfileData setpoint = getProfileDataAtTime(time);
-
-        std::cout << "time: " << time << ", position: " << setpoint.position << ", velocity: " << setpoint.velocity << ", acceleration: " << setpoint.acceleration << std::endl;
 
         // get time error (for accuracy) - 1 is perfect
         double dt = (lastTime == 0) ? MOTION_TIMESTEP : pros::millis() - lastTime;

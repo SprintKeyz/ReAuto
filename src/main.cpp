@@ -2,7 +2,12 @@
 #include "pros/abstract_motor.hpp"
 #include "pros/adi.hpp"
 #include "reauto/api.hpp"
+#include "reauto/controller/impl/PIDController.hpp"
+#include "reauto/datatypes/PIDConstants.h"
+#include "reauto/datatypes/PIDExits.h"
 #include "reauto/device/Catapult.hpp"
+#include "reauto/motion/profile/TrapezoidalProfile.hpp"
+#include <memory>
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
@@ -12,42 +17,21 @@ pros::Motor intakeMotor(10, pros::Motor_Gears::blue);
 
 auto chassis =
 reauto::ChassisBuilder<>()
-.motors({ -20, -6, 1 }, { 5, 3, -2 }, pros::Motor_Gears::blue)
+.motors({ 20, 2 }, { -19, -1 }, pros::Motor_Gears::blue)
 .controller(master)
-.imu(7)
-.trackingWheels({ -12, 1.168 }, { 11, 4.51705 }, 2.75, true)
+.imu(6)
+.trackingWheels({ -12, 1.168 }, { 11, 4.51705 }, 2.75, true)  
 .setTrackWidth(11_in)
 .build();
 
-std::vector<IPIDConstants> linConstants = {
-    {28.2, 52, 3.7, 0},
-    {28.7, 52, 3.71, 6}
-};
+PIDConstants headingConstants = { 5.2, 0.0, 0.0 };
+PIDExits headingExits = { 0.5, 0.75, 180, 450 };
 
-std::vector<IPIDConstants> angConstants = {
-    {6.802, 20, 0.72, 0},
-    {6.8, 20, 0.76, 90}
-};
+auto headingPID = std::make_shared<reauto::controller::PIDController>(headingConstants, headingExits);
 
-PIDExits linExits = {
-    0.1,
-    0.4,
-    50,
-    140,
-    250 };
-
-PIDExits angExits = {
-    0.5,
-    1,
-    60,
-    150,
-    250 };
-
-auto linearPID = std::make_shared<reauto::controller::PIDController>(linConstants, linExits, 2.2);
-auto angularPID = std::make_shared<reauto::controller::PIDController>(angConstants, angExits, 10);
-auto controller = std::make_shared<reauto::MotionController>(chassis, linearPID.get(), angularPID.get(), 3.2);
-
-std::shared_ptr<reauto::device::Catapult> cata = std::make_shared<reauto::device::Catapult>(8, 'A');
+// motion profile
+reauto::TrapezoidalProfileConstants constants = { 95, 1.34, 28, 0.5 };
+auto profile = reauto::TrapezoidalProfile(chassis, constants, headingPID);
 
 void initialize()
 {
@@ -56,12 +40,17 @@ void initialize()
 }
 
 void disabled() {}
+
 void competition_initialize() {}
-void autonomous() {}
+
+void autonomous() {
+  profile.compute(48);
+  profile.followLinear();
+}
 
 void opcontrol()
 {
-  chassis->setSlewDrive(24.0, 5.0);
+  //chassis->setSlewDrive(24.0, 5.0);
   chassis->setDriveExponent(3);
   chassis->setControllerDeadband(12);
   chassis->setDriveMaxSpeed(100_pct);
@@ -69,46 +58,7 @@ void opcontrol()
 
   while (true)
   {
-    if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
-    {
-      cata->fireAsync();
-    }
-
-    if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
-    {
-      intakeMotor = -127;
-    }
-
-    else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
-    {
-      intakeMotor = 127;
-    }
-    else
-    {
-      intakeMotor = 0;
-    }
-
-    // expansion
-    if (master.get_digital(pros::E_CONTROLLER_DIGITAL_X))
-    {
-      // chassis.turn(90, 50);
-      expansionPiston.set_value(true);
-      pistonTime = pros::millis();
-    }
-
-    if (expansionPiston.get_state() && pros::millis() - pistonTime > 800)
-    {
-      expansionPiston.set_value(false);
-      pistonTime = pros::millis();
-    }
-
-    if (master.get_digital(pros::E_CONTROLLER_DIGITAL_B))
-    {
-      cataPiston.toggle();
-      pros::delay(150);
-    }
-
-    chassis->tank();
+    chassis->arcade();
     pros::delay(10);
   }
 }
