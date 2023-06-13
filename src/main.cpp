@@ -31,12 +31,12 @@ auto headingPID = std::make_shared<reauto::controller::PIDController>(headingCon
 
 // motion profile
 reauto::TrapezoidalProfileConstants constants = { 95, 1.34, 28, 0.5 };
-auto profile = reauto::TrapezoidalProfile(chassis, constants, headingPID);
+auto profile = reauto::TrapezoidalProfile(chassis, constants, nullptr);
 
 void initialize()
 {
-  // chassis->strafe(80, 100);
   chassis->init();
+  chassis->setBrakeMode(pros::Motor_Brake::hold);
 }
 
 void disabled() {}
