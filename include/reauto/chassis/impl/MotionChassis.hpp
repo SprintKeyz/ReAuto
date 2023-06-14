@@ -22,6 +22,11 @@ struct RobotMeasurements {
     double gearRatio;
 };
 
+enum class SpeedScaleType {
+    LR_RATIO = 0,
+    RL_RATIO = 1,
+};
+
 class MotionChassis {
 public:
     // this is the ONLY constructor that should be used
@@ -62,6 +67,9 @@ public:
     void brake();
 
     // for driving
+
+    // set the speed scale of the chassis (from 0 to 1, ratio of left:right).
+    void setSpeedScale(double scale, SpeedScaleType type = SpeedScaleType::LR_RATIO);
 
     // set the slew step for driver control
     // signChange is the slew step for when the sign changes
@@ -150,5 +158,8 @@ private:
     // odometry object!
     std::shared_ptr<Odometry> m_odom;
     Pose m_pose = { 0, 0, 0 };
+
+    // speed scale
+    double m_speedScale[2] = {1, 1};
 };
 }

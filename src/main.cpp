@@ -2,6 +2,7 @@
 #include "pros/abstract_motor.hpp"
 #include "pros/adi.hpp"
 #include "reauto/api.hpp"
+#include "reauto/chassis/impl/MotionChassis.hpp"
 #include "reauto/controller/impl/PIDController.hpp"
 #include "reauto/datatypes/PIDConstants.h"
 #include "reauto/datatypes/PIDExits.h"
@@ -37,6 +38,7 @@ void initialize()
 {
   chassis->init();
   chassis->setBrakeMode(pros::Motor_Brake::hold);
+  //chassis->setSpeedScale(1, reauto::SpeedScaleType::LR_RATIO);
 }
 
 void disabled() {}

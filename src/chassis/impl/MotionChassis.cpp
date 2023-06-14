@@ -106,8 +106,8 @@ void MotionChassis::setRightVoltage(double voltage) {
 }
 
 void MotionChassis::setVoltage(double left, double right) {
-    m_robot->setLeftFwdVoltage(left);
-    m_robot->setRightFwdVoltage(right);
+    m_robot->setLeftFwdVoltage(left * (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127)));
+    m_robot->setRightFwdVoltage(right * (m_speedScale[1] == 1 ? 1 : ((right+ 127) / 127)));
 }
 
 void MotionChassis::setLeftVelocity(double velocity) {
@@ -119,8 +119,9 @@ void MotionChassis::setRightVelocity(double velocity) {
 }
 
 void MotionChassis::setVelocity(double left, double right) {
-    m_robot->setLeftFwdVelocity(left);
-    m_robot->setRightFwdVelocity(right);
+    // this may not work since speed scal eis designed for voltage
+    m_robot->setLeftFwdVelocity(left * (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127)));
+    m_robot->setRightFwdVelocity(right * (m_speedScale[1] == 1 ? 1 : ((right+ 127) / 127)));
 }
 
 void MotionChassis::setBrakeMode(pros::Motor_Brake mode) {
@@ -204,12 +205,12 @@ void MotionChassis::tank(double speedScale) {
     right *= speedScale / 127.0;
 
     // set the motor voltages
-    m_robot->setLeftFwdVoltage(left);
-    m_robot->setRightFwdVoltage(right);
+    m_robot->setLeftFwdVoltage(left * (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127)));
+    m_robot->setRightFwdVoltage(right * (m_speedScale[1] == 1 ? 1 : ((right+ 127) / 127)));
 
     // update the current voltage values
-    m_currentLeftVoltage = left;
-    m_currentRightVoltage = right;
+    m_currentLeftVoltage = left * (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127));
+    m_currentRightVoltage = right * (m_speedScale[1] == 1 ? 1 : ((right+ 127) / 127));
 }
 
 void MotionChassis::arcade(double speedScale) {
@@ -254,12 +255,12 @@ void MotionChassis::arcade(double speedScale) {
     right *= speedScale / 127.0;
 
     // set the motor voltages
-    m_robot->setLeftFwdVoltage(left);
-    m_robot->setRightFwdVoltage(right);
+    m_robot->setLeftFwdVoltage(left * m_speedScale[0] == 1 ? 1 : (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127)));
+    m_robot->setRightFwdVoltage(right * (m_speedScale[1] == 1 ? 1 : ((right+ 127) / 127)));
 
     // update the current voltage values
-    m_currentLeftVoltage = left;
-    m_currentRightVoltage = right;
+    m_currentLeftVoltage = left * (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127));
+    m_currentRightVoltage = right * (m_speedScale[1] == 1 ? 1 : ((right+ 127) / 127));
 }
 
 double MotionChassis::getHeading(bool rad) const {
@@ -285,5 +286,15 @@ void MotionChassis::setPose(Pose p) {
 
 TrackingWheels* MotionChassis::getTrackingWheels() const {
     return m_trackingWheels.get();
+}
+
+void MotionChassis::setSpeedScale(double scale, SpeedScaleType type) {
+    if (type == SpeedScaleType::LR_RATIO) {
+        m_speedScale[1] = scale;
+    }
+
+    else {
+        m_speedScale[0] = scale;
+    }
 }
 }
