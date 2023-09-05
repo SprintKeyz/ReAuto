@@ -38,7 +38,6 @@ void initialize()
 {
   chassis->init();
   chassis->setBrakeMode(pros::Motor_Brake::hold);
-  //chassis->setSpeedScale(1, reauto::SpeedScaleType::LR_RATIO);
 }
 
 void disabled() {}
