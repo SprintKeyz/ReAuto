@@ -93,9 +93,9 @@ void MotionChassis::init() {
     m_trackingWheels->right->reset();
 
   // odometry
-  m_odom = std::make_shared<Odometry>(m_trackingWheels.get(), m_imu.get());
-  m_odom->resetPosition();
-  m_odom->startTracking();
+  //m_odom = std::make_shared<Odometry>(m_trackingWheels.get(), m_imu.get());
+  //m_odom->resetPosition();
+  //m_odom->startTracking();
 
   // done!
   std::cout << "[ReAuto] Init complete!" << std::endl;
