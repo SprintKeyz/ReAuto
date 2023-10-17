@@ -14,7 +14,7 @@ template <HolonomicMode HoloMode = HolonomicMode::NONE>
 class ChassisBuilder {
 public:
     // pass motor ports
-    ChassisBuilder& motors(std::initializer_list<int8_t> left, std::initializer_list<int8_t> right, pros::Motor_Gears gears) {
+    ChassisBuilder& motors(std::initializer_list<int8_t> left, std::initializer_list<int8_t> right, pros::MotorGears gears) {
         m_left = left;
         m_right = right;
         m_gearset = gears;
@@ -109,7 +109,7 @@ private:
     std::initializer_list<int8_t> m_right;
 
     // gearset
-    pros::Motor_Gears m_gearset;
+    pros::MotorGears m_gearset;
 
     // ptr to controller
     pros::Controller* m_controller;

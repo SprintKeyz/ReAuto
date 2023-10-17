@@ -15,7 +15,7 @@ std::map<reauto::DistanceUnits, double> conversions = {
 
 namespace reauto {
 namespace device {
-TrackingWheel::TrackingWheel(const int8_t port, const double diam, const double dist): m_diam(diam), m_dist(dist), m_rotation(abs(port), std::signbit(port)), m_filter(5) {}
+TrackingWheel::TrackingWheel(const int8_t port, const double diam, const double dist): m_diam(diam), m_dist(dist), m_rotation(port), m_filter(5) {}
 
 double TrackingWheel::getPosition(bool radians) const {
     double rotation = math::cdegToDeg(m_rotation.get_position());

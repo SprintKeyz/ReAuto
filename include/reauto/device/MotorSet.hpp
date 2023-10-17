@@ -10,7 +10,7 @@ namespace reauto
 class MotorSet
 {
 public:
-    explicit MotorSet(std::initializer_list<int8_t> ports, pros::Motor_Gears gearset);
+    explicit MotorSet(std::initializer_list<int8_t> ports, pros::MotorGears gearset);
 
     // disable copy constructor
     MotorSet(const MotorSet&) = delete;
@@ -21,7 +21,7 @@ public:
     void move(double voltage);
     void move_velocity(double velocity);
     void move_relative(double deg, double velocity);
-    void set_brake_mode(pros::Motor_Brake mode);
+    void set_brake_mode(pros::MotorBrake mode);
     void brake();
     double get_position() const;
 

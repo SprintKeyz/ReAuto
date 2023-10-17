@@ -14,11 +14,11 @@ pros::Controller master(pros::E_CONTROLLER_MASTER);
 
 pros::adi::Pneumatics cataPiston('B', false);
 pros::adi::Pneumatics expansionPiston('C', false);
-pros::Motor intakeMotor(10, pros::Motor_Gears::blue);
+pros::Motor intakeMotor(10, pros::MotorGears::blue);
 
 auto chassis =
 reauto::ChassisBuilder<>()
-.motors({ 20, 2 }, { -19, -1 }, pros::Motor_Gears::blue)
+.motors({ 20, 2 }, { -19, -1 }, pros::MotorGears::blue)
 .controller(master)
 .imu(6)
 .trackingWheels({ -12, 1.168 }, { 11, 4.51705 }, 2.75, true)  
@@ -37,7 +37,7 @@ auto profile = reauto::TrapezoidalProfile(chassis, constants, nullptr);
 void initialize()
 {
   chassis->init();
-  chassis->setBrakeMode(pros::Motor_Brake::hold);
+  chassis->setBrakeMode(pros::MotorBrake::hold);
 }
 
 void disabled() {}

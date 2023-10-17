@@ -33,7 +33,7 @@ public:
     explicit MotionChassis(
         std::initializer_list<int8_t> left,
         std::initializer_list<int8_t> right,
-        pros::Motor_Gears gearset,
+        pros::MotorGears gearset,
         pros::Controller& controller,
         HolonomicMode holoMode,
         uint8_t imuPort,
@@ -63,7 +63,7 @@ public:
     void setRightVelocity(double velocity);
     void setVelocity(double left, double right);
 
-    void setBrakeMode(pros::Motor_Brake mode);
+    void setBrakeMode(pros::MotorBrake mode);
     void brake();
 
     // for driving

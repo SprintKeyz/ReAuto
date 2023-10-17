@@ -1,7 +1,7 @@
 #include "reauto/device/MotorSet.hpp"
 
 namespace reauto {
-MotorSet::MotorSet(std::initializer_list<int8_t> ports, pros::Motor_Gears gearset) {
+MotorSet::MotorSet(std::initializer_list<int8_t> ports, pros::MotorGears gearset) {
     for (auto port : ports) {
         m_motors.emplace_back(port, gearset);
     }
@@ -29,7 +29,7 @@ void MotorSet::move_relative(double deg, double velocity) {
     }
 }
 
-void MotorSet::set_brake_mode(pros::Motor_Brake mode) {
+void MotorSet::set_brake_mode(pros::MotorBrake mode) {
     for (auto& motor : m_motors) {
         motor.set_brake_mode(mode);
     }

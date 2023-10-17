@@ -15,7 +15,3 @@ temp.log
 temp.errors
 *.ini
 .d/
-PYTHON_EXAMPLES/
-*.png
-*.zip
-*.txt

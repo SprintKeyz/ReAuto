@@ -2,7 +2,7 @@
 
 namespace reauto {
 namespace device {
-Catapult::Catapult(const uint8_t motor, const uint8_t limit, pros::Motor_Gears gearset, int speed):
+Catapult::Catapult(const uint8_t motor, const uint8_t limit, pros::MotorGears gearset, int speed):
     m_motor(motor, gearset),
     m_limit(limit),
     m_speed(speed) {}
@@ -15,7 +15,7 @@ void Catapult::setSpeed(const int speed) {
     m_speed = speed;
 }
 
-void Catapult::setBrakeMode(const pros::Motor_Brake brake) {
+void Catapult::setBrakeMode(const pros::MotorBrake brake) {
     m_motor.set_brake_mode(brake);
 }
 

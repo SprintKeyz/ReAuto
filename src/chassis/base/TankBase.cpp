@@ -2,7 +2,7 @@
 #include "reauto/math/Convert.hpp"
 
 namespace reauto {
-TankBase::TankBase(std::initializer_list<int8_t> left, std::initializer_list<int8_t> right, pros::Motor_Gears gearset) {
+TankBase::TankBase(std::initializer_list<int8_t> left, std::initializer_list<int8_t> right, pros::MotorGears gearset) {
     // create the left and right motor groups
     m_left = std::make_shared<MotorSet>(left, gearset);
     m_right = std::make_shared<MotorSet>(right, gearset);
@@ -44,7 +44,7 @@ void TankBase::setTurnVelocity(double velocity) {
     setRightFwdVelocity(-velocity);
 }
 
-void TankBase::setBrakeMode(pros::Motor_Brake mode) {
+void TankBase::setBrakeMode(pros::MotorBrake mode) {
     m_left->set_brake_mode(mode);
     m_right->set_brake_mode(mode);
 }

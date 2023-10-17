@@ -9,7 +9,8 @@ namespace reauto {
 enum class TrackingConfiguration {
     LRB, // left, right, back
     CB, // center, back
-    LR // left, right
+    LR, // left, right
+    NA
 };
 
 struct TrackingWheels {

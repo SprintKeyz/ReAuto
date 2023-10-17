@@ -10,7 +10,7 @@ namespace reauto
 class TankBase: public RobotTemplate
 {
 public:
-    explicit TankBase(std::initializer_list<int8_t> left, std::initializer_list<int8_t> right, pros::Motor_Gears gearset);
+    explicit TankBase(std::initializer_list<int8_t> left, std::initializer_list<int8_t> right, pros::MotorGears gearset);
 
     void setLeftFwdVoltage(double voltage) override;
     void setRightFwdVoltage(double voltage) override;
@@ -24,7 +24,7 @@ public:
     void setTurnVoltage(double voltage) override;
     void setTurnVelocity(double velocity) override;
 
-    void setBrakeMode(pros::Motor_Brake mode) override;
+    void setBrakeMode(pros::MotorBrake mode) override;
     void brake() override;
 
     // get motors

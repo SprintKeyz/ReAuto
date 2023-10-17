@@ -7,10 +7,10 @@ namespace reauto {
 namespace device {
 class Catapult {
 public:
-    Catapult(const uint8_t motor, const uint8_t limit, pros::Motor_Gears gearset = pros::Motor_Gears::blue, int speed = 127);
+    Catapult(const uint8_t motor, const uint8_t limit, pros::MotorGears gearset = pros::MotorGears::blue, int speed = 127);
 
     void setSpeed(const int speed);
-    void setBrakeMode(const pros::Motor_Brake brake);
+    void setBrakeMode(const pros::MotorBrake brake);
     // an amount of time to wait after the limit is pressed before stopping the catapult
     void setStopDelay(const unsigned int delay);
     // an amount of time to wait before polling the limit switch to stop

@@ -2,7 +2,7 @@
 #include "reauto/math/Convert.hpp"
 
 namespace reauto {
-MecanumBase::MecanumBase(std::initializer_list<int8_t> left, std::initializer_list<int8_t> right, pros::Motor_Gears gearset) {
+MecanumBase::MecanumBase(std::initializer_list<int8_t> left, std::initializer_list<int8_t> right, pros::MotorGears gearset) {
     // create the left and right motor groups
 
     if (left.size() != right.size()) {
@@ -94,7 +94,7 @@ void MecanumBase::setStrafeVelocity(double fwdVel, double sideVel) {
     m_right.get()[1].move_velocity(fwdVel + sideVel);
 }
 
-void MecanumBase::setBrakeMode(pros::Motor_Brake mode) {
+void MecanumBase::setBrakeMode(pros::MotorBrake mode) {
     m_left->set_brake_mode(mode);
     m_right->set_brake_mode(mode);
 }

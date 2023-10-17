@@ -12,7 +12,7 @@ namespace reauto
 class MecanumBase: public HolonomicRobotTemplate
 {
 public:
-    explicit MecanumBase(std::initializer_list<int8_t> left, std::initializer_list<int8_t> right, pros::Motor_Gears gearset);
+    explicit MecanumBase(std::initializer_list<int8_t> left, std::initializer_list<int8_t> right, pros::MotorGears gearset);
 
     void setLeftFwdVoltage(double voltage) override;
     void setRightFwdVoltage(double voltage) override;
@@ -35,7 +35,7 @@ public:
     void setStrafeVoltage(double fwdPower, double sidePower) override;
     void setStrafeVelocity(double fwdVel, double sideVel) override;
 
-    void setBrakeMode(pros::Motor_Brake mode) override;
+    void setBrakeMode(pros::MotorBrake mode) override;
     void brake() override;
     // get motors
     MotorSet* getLeftMotors() const;

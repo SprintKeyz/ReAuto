@@ -33,7 +33,7 @@ public:
     virtual void setTurnVelocity(double velocity) = 0;
 
     // set the chassis brake mode
-    virtual void setBrakeMode(pros::Motor_Brake mode) = 0;
+    virtual void setBrakeMode(pros::MotorBrake mode) = 0;
 
     // brake the chassis
     virtual void brake() = 0;
