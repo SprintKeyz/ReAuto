@@ -12,8 +12,5 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Make clean
-        run: make clean
-    
       - name: Build project
-        run: make
+        uses: fishsticks89/pros-build@v1.0
