@@ -1,0 +1,19 @@
+name: PROS Build
+
+on:
+  push:
+    branches: "*"
+  pull_request:
+    branches: "*"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Make clean
+        run: make clean
+    
+      - name: Build project
+        run: make
