@@ -2,6 +2,7 @@
 
 #include "pros/abstract_motor.hpp"
 #include "pros/motor_group.hpp"
+#include "reauto/device/MotorSet.hpp"
 
 #define TOLERANCE_DEG 5
 
@@ -37,6 +38,12 @@ public:
 
     // brake the chassis
     virtual void brake() = 0;
+
+    // get left motors
+    virtual MotorSet* getLeftMotors() const = 0;
+
+    // get right motors
+    virtual MotorSet* getRightMotors() const = 0;
 
     // get the left velocity
     virtual double getLeftVelocity() const = 0;

@@ -116,8 +116,8 @@ public:
     TrackingWheels* getTrackingWheels() const;
 
     // get the motors
-    pros::MotorGroup& getLeftMotors() const;
-    pros::MotorGroup& getRightMotors() const;
+    MotorSet& getLeftMotors() const;
+    MotorSet& getRightMotors() const;
 
     RobotMeasurements getMeasurements() const;
 

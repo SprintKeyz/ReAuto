@@ -322,4 +322,13 @@ void MotionChassis::setSpeedScale(double scale, SpeedScaleType type) {
     m_speedScale[0] = scale;
   }
 }
+
+MotorSet& MotionChassis::getLeftMotors() const {
+  return *m_robot->getLeftMotors();
+}
+
+MotorSet& MotionChassis::getRightMotors() const {
+  return *m_robot->getRightMotors();
+}
+
 } // namespace reauto

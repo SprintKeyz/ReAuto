@@ -2,7 +2,6 @@
 
 #include "pros/abstract_motor.hpp"
 #include "reauto/chassis/template/RobotTemplate.hpp"
-#include "reauto/device/MotorSet.hpp"
 #include <initializer_list>
 
 namespace reauto
@@ -28,8 +27,8 @@ public:
     void brake() override;
 
     // get motors
-    MotorSet* getLeftMotors() const;
-    MotorSet* getRightMotors() const;
+    MotorSet* getLeftMotors() const override;
+    MotorSet* getRightMotors() const override;
 
     // get the left velocity
     double getLeftVelocity() const override;
