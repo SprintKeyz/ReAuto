@@ -3,6 +3,9 @@ name: PROS Build
 on:
   push:
     branches: "*"
+    paths:
+      - 'include/**'
+      - 'src/**'
   pull_request:
     branches: "*"
 
