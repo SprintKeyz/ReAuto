@@ -81,26 +81,16 @@ public:
     }
 
     // set the chassis track width
-    ChassisBuilder& setTrackWidth(double width) {
-        m_trackWidth = width;
-        return *this;
-    }
-
-    // set the chassis wheel diameter
-    ChassisBuilder& setWheelDiam(double diam) {
-        m_wheelDiam = diam;
-        return *this;
-    }
-
-    // set the chassis gear ratio
-    ChassisBuilder& setGearRatio(double ratio) {
-        m_gearRatio = ratio;
+    ChassisBuilder& setChassisConstants(double track_width, double wheel_diam, double rpm) {
+        m_trackWidth = track_width;
+        m_wheelDiam = wheel_diam;
+        m_chassisRPM = rpm;
         return *this;
     }
 
     // build the chassis with feedback
     std::shared_ptr<MotionChassis> build() {
-        return std::make_shared<MotionChassis>(m_left, m_right, m_gearset, *m_controller, HoloMode, m_imuA, m_imuB, m_firstTWheelPort, m_firstTWheelDist, m_secondTWheelPort, m_secondTWheelDist, m_thirdTWheelPort, m_thirdTWheelDist, m_tWheelDiam, m_tConfig, m_trackWidth, m_wheelDiam, m_gearRatio);
+        return std::make_shared<MotionChassis>(m_left, m_right, m_gearset, *m_controller, HoloMode, m_imuA, m_imuB, m_firstTWheelPort, m_firstTWheelDist, m_secondTWheelPort, m_secondTWheelDist, m_thirdTWheelPort, m_thirdTWheelDist, m_tWheelDiam, m_tConfig, m_trackWidth, m_wheelDiam, m_chassisRPM);
     }
 
 private:
@@ -129,7 +119,7 @@ private:
     double m_thirdTWheelDist = 0;
 
     // tracking wheel config
-    TrackingConfiguration m_tConfig;
+    TrackingConfiguration m_tConfig = TrackingConfiguration::NA;
 
     // tracking wheel diameter
     double m_tWheelDiam = 0;
@@ -137,6 +127,6 @@ private:
     // robot properties
     double m_trackWidth = 0;
     double m_wheelDiam = 0;
-    double m_gearRatio = 0;
+    double m_chassisRPM = 0;
 };
 }

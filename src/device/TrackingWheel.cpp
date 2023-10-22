@@ -20,7 +20,7 @@ TrackingWheel::TrackingWheel(const int8_t port, const double diam, const double 
     m_rotation = new pros::Rotation(port);
 }
 
-TrackingWheel::TrackingWheel(MotorSet& motors, const double diam, const double dist, const double rpm) : m_motors(&motors), m_diam(diam), m_dist(dist), m_filter(5) {}
+TrackingWheel::TrackingWheel(MotorSet* motors, const double diam, const double dist, const double rpm) : m_motors(motors), m_diam(diam), m_dist(dist), m_filter(5) {}
 
 double TrackingWheel::getPosition(bool radians) const {
     double rotation = 0;

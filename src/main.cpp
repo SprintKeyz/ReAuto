@@ -21,8 +21,8 @@ reauto::ChassisBuilder<>()
 .motors({ 20, 2 }, { -19, -1 }, pros::MotorGears::blue)
 .controller(master)
 .imu(6)
-.trackingWheels({ -12, 1.168 }, { 11, 4.51705 }, 2.75, true)  
-.setTrackWidth(11_in)
+.trackingWheels({ -12, 1.168 }, { 11, 4.51705 }, 2.75, true)
+.setChassisConstants(10.5, 3.25, 260)
 .build();
 
 PIDConstants headingConstants = { 5.2, 0.0, 0.0 };

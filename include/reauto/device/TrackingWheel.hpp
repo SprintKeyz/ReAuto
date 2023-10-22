@@ -21,7 +21,7 @@ public:
     explicit TrackingWheel(const int8_t port, const double diam, const double dist);
 
     // ctor for a motor set without dedicated hw
-    explicit TrackingWheel(MotorSet& motors, const double diam, const double dist, const double rpm);
+    explicit TrackingWheel(MotorSet* motors, const double diam, const double dist, const double rpm);
 
     // get the position of the tracking wheel
     double getPosition(bool radians = false) const;

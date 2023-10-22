@@ -19,7 +19,7 @@ namespace reauto {
 struct RobotMeasurements {
     double trackWidth;
     double wheelDiameter;
-    double gearRatio;
+    double rpm;
 };
 
 enum class SpeedScaleType {
@@ -164,6 +164,6 @@ private:
     Pose m_pose = { 0, 0, 0 };
 
     // speed scale
-    double m_speedScale[2] = {1, 1};
+    double m_speedScale[2] = { 1, 1 };
 };
 }
