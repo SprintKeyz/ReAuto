@@ -66,9 +66,9 @@ MotionChassis::MotionChassis(
       break;
 
     case TrackingConfiguration::NA:
-      // tconfig for IMEs
-      m_trackingWheels->left = std::make_shared<device::TrackingWheel>(m_robot->getLeftMotors(), m_measurements.wheelDiameter, m_measurements.trackWidth, m_measurements.rpm);
-      m_trackingWheels->right = std::make_shared<device::TrackingWheel>(m_robot->getRightMotors(), m_measurements.wheelDiameter, m_measurements.trackWidth, m_measurements.rpm);
+      // tconfig for IMEs (distance from center is track width / 2)
+      m_trackingWheels->left = std::make_shared<device::TrackingWheel>(m_robot->getLeftMotors(), m_measurements.wheelDiameter, m_measurements.trackWidth / 2, m_measurements.rpm);
+      m_trackingWheels->right = std::make_shared<device::TrackingWheel>(m_robot->getRightMotors(), m_measurements.wheelDiameter, m_measurements.trackWidth / 2, m_measurements.rpm);
       break;
     }
 
@@ -99,9 +99,9 @@ void MotionChassis::init() {
     m_trackingWheels->right->reset();
 
   // odometry
-  //m_odom = std::make_shared<Odometry>(m_trackingWheels.get(), m_imu.get());
-  //m_odom->resetPosition();
-  //m_odom->startTracking();
+  m_odom = std::make_shared<Odometry>(m_trackingWheels.get(), m_imu.get());
+  m_odom->resetPosition();
+  m_odom->startTracking();
 
   // done!
   std::cout << "[ReAuto] Init complete!" << std::endl;

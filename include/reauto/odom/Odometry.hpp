@@ -34,6 +34,8 @@ private:
     // expect this to change in the future!
     double m_prevMiddlePos;
     double m_prevBackPos;
+    double m_prevLeftPos;
+    double m_prevRightPos;
     double m_prevRotationRad;
 
     void resetPreviousVariables();
