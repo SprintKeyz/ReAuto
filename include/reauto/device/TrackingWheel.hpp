@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pros/rotation.hpp"
+#include "reauto/device/MotorSet.hpp"
 #include "reauto/filter/SMAFilter.hpp"
 
 namespace reauto {
@@ -20,7 +21,7 @@ public:
     explicit TrackingWheel(const int8_t port, const double diam, const double dist);
 
     // ctor for a motor set without dedicated hw
-    explicit TrackingWheel(const MotorSet& motors, const double diam, const double dist, const double rpm);
+    explicit TrackingWheel(MotorSet& motors, const double diam, const double dist, const double rpm);
 
     // get the position of the tracking wheel
     double getPosition(bool radians = false) const;
@@ -43,7 +44,10 @@ public:
 private:
     const double m_diam;
     const double m_dist;
-    pros::Rotation m_rotation;
+    const double m_rpm = 0;
+
+    pros::Rotation* m_rotation = nullptr;
+    reauto::MotorSet* m_motors = nullptr;
 
     filter::SMAFilter m_filter;
 

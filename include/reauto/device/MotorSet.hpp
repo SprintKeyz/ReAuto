@@ -24,6 +24,8 @@ public:
     void set_brake_mode(pros::MotorBrake mode);
     void brake();
     double get_position() const;
+    void reset_position();
+    pros::MotorGears get_gearing() const;
 
 private:
     std::vector<pros::Motor> m_motors;

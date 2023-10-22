@@ -41,7 +41,22 @@ void MotorSet::brake() {
     }
 }
 
+void MotorSet::reset_position() {
+    for (auto& motor : m_motors) {
+        motor.tare_position();
+    }
+}
+
 double MotorSet::get_position() const {
-    return m_motors[0].get_position();
+    // we just need to average the positions of all the motors!
+    double sum = 0;
+    for (auto& motor : m_motors) {
+        sum += motor.get_position();
+    }
+    return sum / m_motors.size();
+}
+
+pros::MotorGears MotorSet::get_gearing() const {
+    return m_motors[0].get_gearing();
 }
 }
