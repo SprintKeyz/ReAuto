@@ -33,10 +33,13 @@ auto headingPID = std::make_shared<reauto::controller::PIDController>(headingCon
 reauto::TrapezoidalProfileConstants constants = { 95, 1.34, 28, 0.5 };
 auto profile = reauto::TrapezoidalProfile(chassis, constants, nullptr);
 
+// pure pursuit
+reauto::motion::PurePursuit purePursuitController(chassis.get());
+
 void initialize()
 {
-  chassis->init();
-  chassis->setBrakeMode(pros::MotorBrake::hold);
+	chassis->init();
+	chassis->setBrakeMode(pros::MotorBrake::hold);
 }
 
 void disabled() {}
@@ -44,21 +47,20 @@ void disabled() {}
 void competition_initialize() {}
 
 void autonomous() {
-  profile.compute(48);
-  profile.followLinear();
+	purePursuitController.follow("/usd/path1.txt", 10000, 10);
 }
 
 void opcontrol()
 {
-  //chassis->setSlewDrive(24.0, 5.0);
-  chassis->setDriveExponent(3);
-  chassis->setControllerDeadband(12);
-  chassis->setDriveMaxSpeed(100_pct);
-  double pistonTime = pros::millis();
+	//chassis->setSlewDrive(24.0, 5.0);
+	chassis->setDriveExponent(3);
+	chassis->setControllerDeadband(12);
+	chassis->setDriveMaxSpeed(100_pct);
+	double pistonTime = pros::millis();
 
-  while (true)
-  {
-    chassis->arcade();
-    pros::delay(10);
-  }
+	while (true)
+	{
+		chassis->arcade();
+		pros::delay(10);
+	}
 }

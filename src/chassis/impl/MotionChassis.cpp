@@ -304,9 +304,9 @@ void MotionChassis::setHeading(double deg) {
   m_pose.theta = math::wrap180(deg);
 }
 
-Pose MotionChassis::getPose() const {
+Pose MotionChassis::getPose(bool radians, bool wrap180) const {
   Point p = m_odom->getPosition();
-  return { p.x, p.y, m_imu->getHeading() };
+  return { p.x, p.y, m_imu->getHeading(radians, wrap180) };
 }
 
 void MotionChassis::setPose(Pose p) {

@@ -32,3 +32,6 @@
 
 // include filters
 #include "reauto/filter/SMAFilter.hpp"
+
+// include pure pursuit
+#include "reauto/motion/purepursuit/PurePursuit.hpp"

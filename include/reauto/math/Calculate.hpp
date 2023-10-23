@@ -13,5 +13,6 @@ namespace calc
 double distance(Point a, Point b);
 double angleDifference(Point a, Point b);
 double lineCircleIntersect(Pose p1, Pose p2, Pose c, double r);
+Point lerp(Point a, Point b, double t);
 }
 }

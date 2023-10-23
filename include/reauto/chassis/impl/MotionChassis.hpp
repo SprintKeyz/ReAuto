@@ -103,7 +103,7 @@ public:
     void setHeading(double deg);
 
     // get the robot pose
-    Pose getPose() const;
+    Pose getPose(bool radians = false, bool wrap180 = true) const;
 
     // set the robot pose
     void setPose(Pose p);

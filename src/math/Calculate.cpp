@@ -16,8 +16,8 @@ double reauto::calc::angleDifference(Point a, Point b)
 
 double reauto::calc::lineCircleIntersect(const Pose p1, const Pose p2, const Pose cp, double r)
 {
-    Pose d = {p2.x - p1.x, p2.y - p1.y};
-    Pose f = {p1.x - cp.x, p1.y - cp.y};
+    Pose d = { p2.x - p1.x, p2.y - p1.y };
+    Pose f = { p1.x - cp.x, p1.y - cp.y };
 
     double a = d.x * d.x + d.y * d.y;
     double b = 2 * (f.x * d.x + f.y * d.y);
@@ -37,4 +37,9 @@ double reauto::calc::lineCircleIntersect(const Pose p1, const Pose p2, const Pos
     }
 
     return -1;
+}
+
+Point reauto::calc::lerp(Point a, Point b, double t)
+{
+    return { a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t };
 }
