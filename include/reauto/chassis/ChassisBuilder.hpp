@@ -90,6 +90,11 @@ public:
 
     // build the chassis with feedback
     std::shared_ptr<MotionChassis> build() {
+        std::cout << "Build called..." << std::endl;
+
+        // cout tconfig
+        std::cout << "TConfig: " << static_cast<int>(m_tConfig) << std::endl;
+
         return std::make_shared<MotionChassis>(m_left, m_right, m_gearset, *m_controller, HoloMode, m_imuA, m_imuB, m_firstTWheelPort, m_firstTWheelDist, m_secondTWheelPort, m_secondTWheelDist, m_thirdTWheelPort, m_thirdTWheelDist, m_tWheelDiam, m_tConfig, m_trackWidth, m_wheelDiam, m_chassisRPM);
     }
 

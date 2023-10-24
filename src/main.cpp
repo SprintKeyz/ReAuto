@@ -1,45 +1,78 @@
 #include "main.h"
-#include "pros/abstract_motor.hpp"
-#include "pros/adi.hpp"
+#include "pros/misc.hpp"
 #include "reauto/api.hpp"
-#include "reauto/chassis/impl/MotionChassis.hpp"
-#include "reauto/controller/impl/PIDController.hpp"
-#include "reauto/datatypes/PIDConstants.h"
-#include "reauto/datatypes/PIDExits.h"
-#include "reauto/device/Catapult.hpp"
-#include "reauto/motion/profile/TrapezoidalProfile.hpp"
+#include "reauto/motion/purepursuit/PurePursuit.hpp"
+#include <fstream>
 #include <memory>
+#include <streambuf>
+#include <string>
 
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
-pros::adi::Pneumatics cataPiston('B', false);
-pros::adi::Pneumatics expansionPiston('C', false);
-pros::Motor intakeMotor(10, pros::MotorGears::blue);
-
 auto chassis =
-reauto::ChassisBuilder<>()
-.motors({ 20, 2 }, { -19, -1 }, pros::MotorGears::blue)
-.controller(master)
-.imu(6)
-.setChassisConstants(10.5, 3.25, 260)
-.build();
+	reauto::ChassisBuilder<>()
+		.motors({14, -19, -18}, {16, 15, -13}, pros::MotorGears::blue)
+		.controller(master)
+		.setChassisConstants(10.5_in, 3.25_in, 360)
+		.imu(21)
+		.build();
 
-PIDConstants headingConstants = { 5.2, 0.0, 0.0 };
-PIDExits headingExits = { 0.5, 0.75, 180, 450 };
+// the catapult is free spinning, so no need to add any functionality to reauto.
+pros::Motor cata(12);
+pros::Motor intake(11);
 
-auto headingPID = std::make_shared<reauto::controller::PIDController>(headingConstants, headingExits);
+// walls
+pros::adi::Pneumatics walls('A', false);
+pros::adi::Pneumatics doinker('B', false);
+pros::adi::Pneumatics climb('E', false);
 
-// motion profile
-reauto::TrapezoidalProfileConstants constants = { 95, 1.34, 28, 0.5 };
-auto profile = reauto::TrapezoidalProfile(chassis, constants, nullptr);
+// set up PID controller for lateral movement
+std::vector<IPIDConstants> latConstants = {
+	{0, 0, 0, 0}
+};
 
-// pure pursuit
-reauto::motion::PurePursuit purePursuitController(chassis.get());
+// angular movement
+std::vector<IPIDConstants> angConstants = {
+	{0, 0, 0, 0}
+};
 
-void initialize()
-{
+PIDExits linExits = {
+	0.1,
+	0.4,
+	50,
+	140,
+	250
+};
+
+PIDExits angExits = {
+	0.5,
+	1,
+	60,
+	150,
+	250
+};
+
+auto linPID = std::make_shared<reauto::controller::PIDController>(latConstants, linExits);
+auto angPID = std::make_shared<reauto::controller::PIDController>(angConstants, angExits);
+auto controller = std::make_shared<reauto::MotionController>(chassis, linPID.get(), angPID.get());
+
+auto purePursuit = std::make_shared<reauto::motion::PurePursuit>(chassis.get());
+
+void initialize() {
+	std::cout << "Is installed: " << pros::usd::is_installed() << std::endl;
+
+	std::ifstream file("/usd/path.txt");
+	std::string line;
+
+	std::cout << "Is open: " << file.is_open() << std::endl;
+
+	while (std::getline(file, line)) {
+		std::cout << line << std::endl;
+	}
+
+	// read file to buffer
+
 	chassis->init();
-	chassis->setBrakeMode(pros::MotorBrake::hold);
 }
 
 void disabled() {}
@@ -47,20 +80,61 @@ void disabled() {}
 void competition_initialize() {}
 
 void autonomous() {
-	purePursuitController.follow("/usd/path1.txt", 10000, 10);
+	purePursuit->follow("/usd/path.txt", 20000, 10);
+
+	// PID testing
+	//controller->drive(12_in);
+	//controller->turn(90_deg);
 }
 
-void opcontrol()
-{
-	//chassis->setSlewDrive(24.0, 5.0);
+void opcontrol() {
 	chassis->setDriveExponent(3);
-	chassis->setControllerDeadband(12);
-	chassis->setDriveMaxSpeed(100_pct);
-	double pistonTime = pros::millis();
+ 	chassis->setControllerDeadband(12);
 
-	while (true)
-	{
-		chassis->arcade();
+	while (true) {
+		// step our tank drive loop, handled by reauto
+		chassis->tank();
+
+		// get pose
+		Pose p = chassis->getPose();
+		std::cout << "X: " << p.x << ", Y: " << p.y << ", Angle: " << p.theta.value_or(0) << std::endl;
+
+		// intake controls
+		if (master.get_digital(DIGITAL_R1)) {
+			intake.move_voltage(-12000);
+		}
+
+		else if (master.get_digital(DIGITAL_R2)) {
+			intake.move_voltage(12000);
+		}
+
+		else {
+			intake.brake();
+		}
+
+		// catapult controls
+		if (master.get_digital(DIGITAL_L1)) {
+			cata.move_voltage(10800);
+		}
+
+		else {
+			cata.move_voltage(0);
+		}
+		
+		// pneumatic walls
+		if (master.get_digital_new_press(DIGITAL_L2)) {
+			walls.toggle();
+		}
+
+		if (master.get_digital_new_press(DIGITAL_A)) {
+			doinker.toggle();
+		}
+
+		// climb
+		if (master.get_digital_new_press(DIGITAL_X)) {
+			climb.toggle();
+		}
+
 		pros::delay(10);
 	}
 }

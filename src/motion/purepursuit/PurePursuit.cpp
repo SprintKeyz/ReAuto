@@ -35,6 +35,8 @@ std::vector<Pose> getData(const char* path) {
 	std::vector<std::string> pointInput;
 	Pose pathPoint = { 0, 0, 0 };
 
+	std::cout << "PATH IS: " << path << std::endl;
+
 	FILE* usd_path_file = fopen(path, "r");
 
 	// get file size
@@ -166,6 +168,11 @@ void PurePursuit::follow(const char* path, int timeout, double lookahead, bool r
 	Pose lastLookahead = pathPoints.at(0);
 	lastLookahead.theta = 0;
 
+	std::cout << "Path points: " << std::endl;
+	for (Pose p : pathPoints) {
+		std::cout << p.x << ", " << p.y << ", " << p.theta.value_or(0) << std::endl;
+	} 
+
 	double curvature;
 	double targetVel;
 	double prevLeftVel = 0;
@@ -180,6 +187,8 @@ void PurePursuit::follow(const char* path, int timeout, double lookahead, bool r
 	for (int i = 0; i < timeout / 10; i++) {
 		pose = m_chassis->getPose(true, false);
 
+		std::cout << "Pose is " << pose.x << std::endl;
+
 		// if reversed, flip the pose
 		if (reverse) pose.theta = pose.theta.value_or(0.0) - M_PI;
 
@@ -187,8 +196,12 @@ void PurePursuit::follow(const char* path, int timeout, double lookahead, bool r
 		m_distTraveled += calc::distance({ pose.x, pose.y }, { lastPose.x, lastPose.y });
 		lastPose = pose;
 
+		std::cout << "Dist traveled: " << m_distTraveled << std::endl;
+
 		// find the closest point to the robot
 		closestPoint = findClosest(pose, pathPoints);
+
+		std::cout << "Closest point: " << closestPoint << std::endl;
 
 		// if robot is at the end of the path, break
 		if (pathPoints.at(closestPoint).theta == 0) break;
@@ -197,9 +210,13 @@ void PurePursuit::follow(const char* path, int timeout, double lookahead, bool r
 		lookaheadPose = lookaheadPoint(lastLookahead, pose, pathPoints, lookahead);
 		lastLookahead = lookaheadPose;
 
+		std::cout << "Lookahead point: " << lookaheadPose.x << ", " << lookaheadPose.y << std::endl;
+
 		// calc curavture of the arc to the lookahead point
 		double curvatureHeading = M_PI / 2 - pose.theta.value_or(0.0);
 		curvature = findLookaheadCurvature(pose, curvatureHeading, lookaheadPose);
+
+		std::cout << "Curvature: " << curvature << std::endl;
 
 		// calculate target velocity
 		targetVel = pathPoints.at(closestPoint).theta.value_or(0.0);
@@ -207,6 +224,8 @@ void PurePursuit::follow(const char* path, int timeout, double lookahead, bool r
 		// calculate target LR velocities
 		double targetLeftVel = targetVel * (2 + curvature * m_chassis->getMeasurements().trackWidth) / 2;
 		double targetRightVel = targetVel * (2 - curvature * m_chassis->getMeasurements().trackWidth) / 2;
+
+		std::cout << "Target left vel: " << targetLeftVel << std::endl;
 
 		// ratio the speeds to the max speed
 		double ratio = std::max(std::fabs(targetLeftVel), std::fabs(targetRightVel)) / maxSpeed;

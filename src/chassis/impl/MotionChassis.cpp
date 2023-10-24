@@ -6,14 +6,14 @@
 
 namespace reauto {
 MotionChassis::MotionChassis(
-  std::initializer_list<int8_t> left, std::initializer_list<int8_t> right,
-  pros::MotorGears gearset, pros::Controller& controller,
-  HolonomicMode holoMode, uint8_t imuPort, uint8_t secondaryImuPort,
-  int8_t firstTWheelPort, double firstTWheelDist, int8_t secondTWheelPort,
-  double secondTWheelDist, int8_t thirdTWheelPort, double thirdTWheelDist,
-  double tWheelDiam, TrackingConfiguration tConfig, double trackWidth,
-  double wheelDiameter, double rpm)
-  : m_controller(controller) {
+    std::initializer_list<int8_t> left, std::initializer_list<int8_t> right,
+    pros::MotorGears gearset, pros::Controller &controller,
+    HolonomicMode holoMode, uint8_t imuPort, uint8_t secondaryImuPort,
+    int8_t firstTWheelPort, double firstTWheelDist, int8_t secondTWheelPort,
+    double secondTWheelDist, int8_t thirdTWheelPort, double thirdTWheelDist,
+    double tWheelDiam, TrackingConfiguration tConfig, double trackWidth,
+    double wheelDiameter, double rpm)
+    : m_controller(controller) {
 
   switch (holoMode) {
   case HolonomicMode::NONE:
@@ -24,7 +24,7 @@ MotionChassis::MotionChassis(
     break;
   default:
     throw std::runtime_error(
-      "[ReAuto] Sorry! This holonomic mode is not supported yet.");
+        "[ReAuto] Sorry! This holonomic mode is not supported yet.");
     break;
   }
 
@@ -38,44 +38,56 @@ MotionChassis::MotionChassis(
     m_imu = std::make_shared<device::IMU>(imuPort);
   }
 
-  if (tConfig != TrackingConfiguration::NA) {
-    m_trackingWheels = std::make_shared<TrackingWheels>();
+  m_trackingWheels = std::make_shared<TrackingWheels>();
 
-    switch (tConfig) {
-    case TrackingConfiguration::LRB:
-      m_trackingWheels->left = std::make_shared<device::TrackingWheel>(
+  // set all to nullptr
+  m_trackingWheels->left = nullptr;
+  m_trackingWheels->center = nullptr;
+  m_trackingWheels->right = nullptr;
+  m_trackingWheels->back = nullptr;
+
+  switch (tConfig) {
+  case TrackingConfiguration::LRB:
+    m_trackingWheels->left = std::make_shared<device::TrackingWheel>(
         firstTWheelPort, tWheelDiam, firstTWheelDist);
-      m_trackingWheels->right = std::make_shared<device::TrackingWheel>(
+    m_trackingWheels->right = std::make_shared<device::TrackingWheel>(
         secondTWheelPort, tWheelDiam, secondTWheelDist);
-      m_trackingWheels->back = std::make_shared<device::TrackingWheel>(
+    m_trackingWheels->back = std::make_shared<device::TrackingWheel>(
         thirdTWheelPort, tWheelDiam, thirdTWheelDist);
-      break;
+    break;
 
-    case TrackingConfiguration::CB:
-      m_trackingWheels->center = std::make_shared<device::TrackingWheel>(
+  case TrackingConfiguration::CB:
+    m_trackingWheels->center = std::make_shared<device::TrackingWheel>(
         firstTWheelPort, tWheelDiam, firstTWheelDist);
-      m_trackingWheels->back = std::make_shared<device::TrackingWheel>(
+    m_trackingWheels->back = std::make_shared<device::TrackingWheel>(
         secondTWheelPort, tWheelDiam, secondTWheelDist);
-      break;
+    break;
 
-    case TrackingConfiguration::LR:
-      m_trackingWheels->left = std::make_shared<device::TrackingWheel>(
+  case TrackingConfiguration::LR:
+    m_trackingWheels->left = std::make_shared<device::TrackingWheel>(
         firstTWheelPort, tWheelDiam, firstTWheelDist);
-      m_trackingWheels->right = std::make_shared<device::TrackingWheel>(
+    m_trackingWheels->right = std::make_shared<device::TrackingWheel>(
         secondTWheelPort, tWheelDiam, secondTWheelDist);
-      break;
+    break;
 
-    case TrackingConfiguration::NA:
-      // tconfig for IMEs (distance from center is track width / 2)
-      m_trackingWheels->left = std::make_shared<device::TrackingWheel>(m_robot->getLeftMotors(), m_measurements.wheelDiameter, m_measurements.trackWidth / 2, m_measurements.rpm);
-      m_trackingWheels->right = std::make_shared<device::TrackingWheel>(m_robot->getRightMotors(), m_measurements.wheelDiameter, m_measurements.trackWidth / 2, m_measurements.rpm);
-      break;
-    }
+  case TrackingConfiguration::NA:
+    // tconfig for IMEs (distance from center is track width / 2)
+    m_trackingWheels->left = std::make_shared<device::TrackingWheel>(
+        m_robot->getLeftMotors(), m_measurements.wheelDiameter,
+        m_measurements.trackWidth / 2, m_measurements.rpm);
+    m_trackingWheels->right = std::make_shared<device::TrackingWheel>(
+        m_robot->getRightMotors(), m_measurements.wheelDiameter,
+        m_measurements.trackWidth / 2, m_measurements.rpm);
 
-    m_trackingWheels->config = tConfig;
+    std::cout << "TConfig NA" << std::endl;
+    std::cout << "IS NULLPTR BACK: " << (m_trackingWheels->left == nullptr)
+              << std::endl;
+    break;
   }
 
-  m_measurements = { trackWidth, wheelDiameter, rpm };
+  m_trackingWheels->config = tConfig;
+
+  m_measurements = {trackWidth, wheelDiameter, rpm};
 }
 
 RobotMeasurements MotionChassis::getMeasurements() const {
@@ -88,6 +100,17 @@ void MotionChassis::init() {
   // reset IMU
   m_imu->reset(true);
 
+  std::cout << "Reset IMU" << std::endl;
+
+  std::cout << "IS NULLPTR BACK: " << (m_trackingWheels->back == nullptr)
+            << std::endl;
+  std::cout << "IS NULLPTR CENTER: " << (m_trackingWheels->center == nullptr)
+            << std::endl;
+  std::cout << "IS NULLPTR LEFT: " << (m_trackingWheels->left == nullptr)
+            << std::endl;
+  std::cout << "IS NULLPTR RIGHT: " << (m_trackingWheels->right == nullptr)
+            << std::endl;
+
   // reset encoder positions
   if (m_trackingWheels->back != nullptr)
     m_trackingWheels->back->reset();
@@ -97,6 +120,8 @@ void MotionChassis::init() {
     m_trackingWheels->left->reset();
   if (m_trackingWheels->right != nullptr)
     m_trackingWheels->right->reset();
+
+  std::cout << "Reset tracking wheels" << std::endl;
 
   // odometry
   m_odom = std::make_shared<Odometry>(m_trackingWheels.get(), m_imu.get());
@@ -117,9 +142,9 @@ void MotionChassis::setRightVoltage(double voltage) {
 
 void MotionChassis::setVoltage(double left, double right) {
   m_robot->setLeftFwdVoltage(left *
-    (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127)));
+                             (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127)));
   m_robot->setRightFwdVoltage(
-    right * (m_speedScale[1] == 1 ? 1 : ((right + 127) / 127)));
+      right * (m_speedScale[1] == 1 ? 1 : ((right + 127) / 127)));
 }
 
 void MotionChassis::setLeftVelocity(double velocity) {
@@ -133,9 +158,9 @@ void MotionChassis::setRightVelocity(double velocity) {
 void MotionChassis::setVelocity(double left, double right) {
   // this may not work since speed scal eis designed for voltage
   m_robot->setLeftFwdVelocity(
-    left * (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127)));
+      left * (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127)));
   m_robot->setRightFwdVelocity(
-    right * (m_speedScale[1] == 1 ? 1 : ((right + 127) / 127)));
+      right * (m_speedScale[1] == 1 ? 1 : ((right + 127) / 127)));
 }
 
 void MotionChassis::setBrakeMode(pros::MotorBrake mode) {
@@ -166,8 +191,8 @@ void MotionChassis::setControllerDeadband(double deadband) {
 }
 
 void MotionChassis::setArcadeDriveChannels(
-  pros::controller_analog_e_t forwardChannel,
-  pros::controller_analog_e_t turnChannel) {
+    pros::controller_analog_e_t forwardChannel,
+    pros::controller_analog_e_t turnChannel) {
   m_forwardChannel = forwardChannel;
   m_turnChannel = turnChannel;
 }
@@ -200,13 +225,13 @@ void MotionChassis::tank(double speedScale) {
   // slew if applicable
   if (m_slewStep > 0) {
     util::slew(m_currentLeftVoltage, left,
-      std::signbit(left) != std::signbit(m_currentLeftVoltage)
-      ? m_slewStepSignChange
-      : m_slewStep);
+               std::signbit(left) != std::signbit(m_currentLeftVoltage)
+                   ? m_slewStepSignChange
+                   : m_slewStep);
     util::slew(m_currentRightVoltage, right,
-      std::signbit(right) != std::signbit(m_currentRightVoltage)
-      ? m_slewStepSignChange
-      : m_slewStep);
+               std::signbit(right) != std::signbit(m_currentRightVoltage)
+                   ? m_slewStepSignChange
+                   : m_slewStep);
   }
 
   // account for max speed
@@ -221,15 +246,15 @@ void MotionChassis::tank(double speedScale) {
 
   // set the motor voltages
   m_robot->setLeftFwdVoltage(left *
-    (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127)));
+                             (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127)));
   m_robot->setRightFwdVoltage(
-    right * (m_speedScale[1] == 1 ? 1 : ((right + 127) / 127)));
+      right * (m_speedScale[1] == 1 ? 1 : ((right + 127) / 127)));
 
   // update the current voltage values
   m_currentLeftVoltage =
-    left * (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127));
+      left * (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127));
   m_currentRightVoltage =
-    right * (m_speedScale[1] == 1 ? 1 : ((right + 127) / 127));
+      right * (m_speedScale[1] == 1 ? 1 : ((right + 127) / 127));
 }
 
 void MotionChassis::arcade(double speedScale) {
@@ -260,13 +285,13 @@ void MotionChassis::arcade(double speedScale) {
   // slew if applicable
   if (m_slewStep > 0) {
     util::slew(m_currentLeftVoltage, left,
-      std::signbit(left) != std::signbit(m_currentLeftVoltage)
-      ? m_slewStepSignChange
-      : m_slewStep);
+               std::signbit(left) != std::signbit(m_currentLeftVoltage)
+                   ? m_slewStepSignChange
+                   : m_slewStep);
     util::slew(m_currentRightVoltage, right,
-      std::signbit(right) != std::signbit(m_currentRightVoltage)
-      ? m_slewStepSignChange
-      : m_slewStep);
+               std::signbit(right) != std::signbit(m_currentRightVoltage)
+                   ? m_slewStepSignChange
+                   : m_slewStep);
   }
 
   // account for max speed
@@ -281,17 +306,17 @@ void MotionChassis::arcade(double speedScale) {
 
   // set the motor voltages
   m_robot->setLeftFwdVoltage(
-    left * m_speedScale[0] == 1
-    ? 1
-    : (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127)));
+      left * m_speedScale[0] == 1
+          ? 1
+          : (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127)));
   m_robot->setRightFwdVoltage(
-    right * (m_speedScale[1] == 1 ? 1 : ((right + 127) / 127)));
+      right * (m_speedScale[1] == 1 ? 1 : ((right + 127) / 127)));
 
   // update the current voltage values
   m_currentLeftVoltage =
-    left * (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127));
+      left * (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127));
   m_currentRightVoltage =
-    right * (m_speedScale[1] == 1 ? 1 : ((right + 127) / 127));
+      right * (m_speedScale[1] == 1 ? 1 : ((right + 127) / 127));
 }
 
 double MotionChassis::getHeading(bool rad) const {
@@ -306,16 +331,16 @@ void MotionChassis::setHeading(double deg) {
 
 Pose MotionChassis::getPose(bool radians, bool wrap180) const {
   Point p = m_odom->getPosition();
-  return { p.x, p.y, m_imu->getHeading(radians, wrap180) };
+  return {p.x, p.y, m_imu->getHeading(radians, wrap180)};
 }
 
 void MotionChassis::setPose(Pose p) {
-  m_odom->setPosition({ p.x, p.y });
+  m_odom->setPosition({p.x, p.y});
   m_imu->setHeading(p.theta.value_or(0));
   m_pose = p;
 }
 
-TrackingWheels* MotionChassis::getTrackingWheels() const {
+TrackingWheels *MotionChassis::getTrackingWheels() const {
   return m_trackingWheels.get();
 }
 
@@ -329,11 +354,11 @@ void MotionChassis::setSpeedScale(double scale, SpeedScaleType type) {
   }
 }
 
-MotorSet& MotionChassis::getLeftMotors() const {
+MotorSet &MotionChassis::getLeftMotors() const {
   return *m_robot->getLeftMotors();
 }
 
-MotorSet& MotionChassis::getRightMotors() const {
+MotorSet &MotionChassis::getRightMotors() const {
   return *m_robot->getRightMotors();
 }
 
