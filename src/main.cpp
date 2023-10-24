@@ -59,19 +59,6 @@ auto controller = std::make_shared<reauto::MotionController>(chassis, linPID.get
 auto purePursuit = std::make_shared<reauto::motion::PurePursuit>(chassis.get());
 
 void initialize() {
-	std::cout << "Is installed: " << pros::usd::is_installed() << std::endl;
-
-	std::ifstream file("/usd/path.txt");
-	std::string line;
-
-	std::cout << "Is open: " << file.is_open() << std::endl;
-
-	while (std::getline(file, line)) {
-		std::cout << line << std::endl;
-	}
-
-	// read file to buffer
-
 	chassis->init();
 }
 
