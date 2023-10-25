@@ -1,4 +1,5 @@
 #include "reauto/chassis/base/MecanumBase.hpp"
+#include "pros/motors.h"
 #include "reauto/math/Convert.hpp"
 
 namespace reauto {
@@ -15,6 +16,8 @@ MecanumBase::MecanumBase(std::initializer_list<int8_t> left, std::initializer_li
 
     m_left = std::make_shared<MotorSet>(left, gearset);
     m_right = std::make_shared<MotorSet>(right, gearset);
+    m_left->setEncoderUnits(pros::E_MOTOR_ENCODER_DEGREES);
+    m_right->setEncoderUnits(pros::E_MOTOR_ENCODER_DEGREES);
 }
 
 void MecanumBase::setLeftFwdVoltage(double voltage) {

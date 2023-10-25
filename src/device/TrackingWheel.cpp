@@ -3,6 +3,7 @@
 #include "reauto/chassis/impl/MotionChassis.hpp"
 #include "reauto/math/Convert.hpp"
 #include "reauto/filter/SMAFilter.hpp"
+#include <iostream>
 #include <map>
 
 // the conversion factors for our units
@@ -20,7 +21,7 @@ TrackingWheel::TrackingWheel(const int8_t port, const double diam, const double 
     m_rotation = new pros::Rotation(port);
 }
 
-TrackingWheel::TrackingWheel(MotorSet* motors, const double diam, const double dist, const double rpm) : m_motors(motors), m_diam(diam), m_dist(dist), m_filter(5) {}
+TrackingWheel::TrackingWheel(MotorSet* motors, const double diam, const double dist, const double rpm) : m_motors(motors), m_diam(diam), m_dist(dist), m_filter(5), m_rpm(rpm) {}
 
 double TrackingWheel::getPosition(bool radians) const {
     double rotation = 0;
@@ -30,7 +31,7 @@ double TrackingWheel::getPosition(bool radians) const {
     }
 
     if (m_motors != nullptr) {
-        rotation = math::cdegToDeg(m_motors->get_position());
+        rotation = m_motors->get_position();
     }
 
     return radians ? math::degToRad(rotation) : rotation;
@@ -47,6 +48,8 @@ double TrackingWheel::getDistanceTraveled(DistanceUnits units) const {
     else if (m_motors != nullptr) {
         double dist = 0;
         double in;
+
+        position /= 360; // convert to rotations
 
         switch (m_motors->get_gearing()) {
         case pros::MotorGears::ratio_36_to_1:

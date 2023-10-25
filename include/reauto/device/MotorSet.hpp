@@ -26,6 +26,7 @@ public:
     double get_position() const;
     void reset_position();
     pros::MotorGears get_gearing() const;
+    void setEncoderUnits(pros::motor_encoder_units_e_t units);
 
 private:
     std::vector<pros::Motor> m_motors;

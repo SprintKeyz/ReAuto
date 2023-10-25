@@ -17,6 +17,12 @@ void MotorSet::move(double voltage) {
     }
 }
 
+void MotorSet::setEncoderUnits(pros::motor_encoder_units_e_t units) {
+    for (auto& motor : m_motors) {
+        motor.set_encoder_units(units);
+    }
+}
+
 void MotorSet::move_velocity(double velocity) {
     for (auto& motor : m_motors) {
         motor.move_velocity(velocity);
@@ -53,6 +59,7 @@ double MotorSet::get_position() const {
     for (auto& motor : m_motors) {
         sum += motor.get_position();
     }
+
     return sum / m_motors.size();
 }
 

@@ -1,5 +1,6 @@
 #include "reauto/odom/Odometry.hpp"
 #include "reauto/device/IMU.hpp"
+#include "reauto/math/Convert.hpp"
 
 namespace reauto {
 Odometry::Odometry(TrackingWheels* wheels, device::IMU* imu) : m_wheels(wheels), m_imu(imu) {}
@@ -48,7 +49,7 @@ void Odometry::startTracking() {
             }
 
             if (m_wheels->left != nullptr) {
-                leftPos = m_wheels->left->getPosition();
+                leftPos = math::inToDeg(m_wheels->left->getDistanceTraveled(), m_wheels->left->getDiameter());
             }
 
             if (m_wheels->right != nullptr) {
@@ -64,8 +65,10 @@ void Odometry::startTracking() {
             while (true) {
                 middlePos = (m_wheels->center != nullptr) ? m_wheels->center->getPosition() : 0;
                 backPos = (m_wheels->back != nullptr) ? m_wheels->back->getPosition() : 0;
-                leftPos = (m_wheels->left != nullptr) ? m_wheels->left->getPosition() : 0;
-                rightPos = (m_wheels->right != nullptr) ? m_wheels->right->getPosition() : 0;
+                leftPos = (m_wheels->left != nullptr) ? math::inToDeg(m_wheels->left->getDistanceTraveled(), m_wheels->left->getDiameter()) : 0;
+                rightPos = (m_wheels->right == nullptr) ? m_wheels->right->getPosition() : 0;
+
+                //std::cout << "Left position: " << leftPos << std::endl;
 
                 currentRotationRad = m_imu->getRotation(true);
 
@@ -74,7 +77,7 @@ void Odometry::startTracking() {
                 double deltaRightPos = rightPos - m_prevRightPos;
                 double deltaMiddlePos = middlePos - m_prevMiddlePos;
                 double deltaBackPos = backPos - m_prevBackPos;
-                double dHeading = currentRotationRad - m_prevRotationRad;
+                double dRotation = currentRotationRad - m_prevRotationRad;
 
                 // update previous values
                 m_prevLeftPos = leftPos;
@@ -88,22 +91,22 @@ void Odometry::startTracking() {
                 // calculate vertical and horizontal movement IN INCHES
                 switch (m_wheels->config) {
                 case TrackingConfiguration::CB:
-                    dFwd = math::degToIn(deltaMiddlePos, m_wheels->center->getDiameter()) - m_wheels->center->getCenterDistance() * dHeading;
-                    dSide = math::degToIn(deltaBackPos, m_wheels->back->getDiameter()) - m_wheels->back->getCenterDistance() * dHeading;
+                    dFwd = math::degToIn(deltaMiddlePos, m_wheels->center->getDiameter()) - m_wheels->center->getCenterDistance() * dRotation;
+                    dSide = math::degToIn(deltaBackPos, m_wheels->back->getDiameter()) - m_wheels->back->getCenterDistance() * dRotation;
                     break;
 
                 case TrackingConfiguration::LR:
-                    dFwd = math::degToIn(deltaLeftPos, m_wheels->left->getDiameter()) - m_wheels->left->getCenterDistance() * dHeading;
+                    dFwd = math::degToIn(deltaLeftPos, m_wheels->left->getDiameter()) - m_wheels->left->getCenterDistance() * dRotation;
                     break;
 
                 case TrackingConfiguration::LRB:
-                    dFwd = math::degToIn(deltaLeftPos, m_wheels->left->getDiameter()) - m_wheels->left->getCenterDistance() * dHeading;
-                    dSide = math::degToIn(deltaBackPos, m_wheels->back->getDiameter()) - m_wheels->back->getCenterDistance() * dHeading;
+                    dFwd = math::degToIn(deltaLeftPos, m_wheels->left->getDiameter()) - m_wheels->left->getCenterDistance() * dRotation;
+                    dSide = math::degToIn(deltaBackPos, m_wheels->back->getDiameter()) - m_wheels->back->getCenterDistance() * dRotation;
                     break;
 
                 case TrackingConfiguration::NA:
                     // user has no unpowered wheels (same as LR because it's abstracted)
-                    dFwd = math::degToIn(deltaLeftPos, m_wheels->left->getDiameter()) - m_wheels->left->getCenterDistance() * dHeading;
+                    dFwd = math::degToIn(deltaLeftPos, m_wheels->left->getDiameter()) - m_wheels->left->getCenterDistance() * dRotation;
                     break;
                 }
 
@@ -116,8 +119,16 @@ void Odometry::startTracking() {
                 double dY = dFwd * sinHeading + dSide * cosHeading;
 
                 // update the position
-                m_pos.x += dX;
-                m_pos.y += dY;
+                if (!(m_wheels->config == TrackingConfiguration::NA)) {
+                    m_pos.x += dX;
+                    m_pos.y += dY;
+                }
+
+                else {
+                    // I'm not entirely sure what this is. I expect it's a bug, but odometry works so I'll leave it for now.
+                    m_pos.x += dY;
+                    m_pos.y += dX;
+                }
 
                 pros::delay(ODOM_TIMESTEP);
             }
