@@ -89,9 +89,11 @@ double PIDController::calculate(double error) {
         // only slew at the start (within first 3 inches)
         // edit: or the end (within last 3 inches)
         // ensure target >= 6 to do this!
-        if ((fabs(m_error) > fabs(m_target) - 3.0)) {
+        //if ((fabs(m_error) > fabs(m_target) - 3.0)) {
+        if (fabs(m_target) >= 6) {
             util::slew(m_lastOutput, output, m_slew);
         }
+        //}
     }
 
     m_lastOutput = output;

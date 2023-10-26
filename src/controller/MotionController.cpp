@@ -1,5 +1,6 @@
 #include "reauto/controller/MotionController.hpp"
 #include "reauto/controller/impl/PIDController.hpp"
+#include "reauto/device/TrackingWheels.hpp"
 #include "reauto/math/Calculate.hpp"
 #include "reauto/math/Convert.hpp"
 
@@ -28,21 +29,36 @@ void MotionController::drive(double distance, double maxSpeed, double maxTime,
     if (m_headingController != nullptr)
         m_headingController->setTarget(m_lastTargetAngle);
 
-    m_initialDistance =
-        m_chassis->getTrackingWheels()->center->getDistanceTraveled();
+    // set initial distance based on tconfig
+    if (m_chassis->getTrackingWheels()->config == TrackingConfiguration::CB) {
+        m_initialDistance = m_chassis->getTrackingWheels()->center->getDistanceTraveled();
+    }
+
+    else {
+        m_initialDistance = m_chassis->getTrackingWheels()->left->getDistanceTraveled();
+    }
 
     if (thru)
     {
-        double error =
-            distance -
-            (m_chassis->getTrackingWheels()->center->getDistanceTraveled() -
-                m_initialDistance);
+        double error;
+
+        if (m_chassis->getTrackingWheels()->config == TrackingConfiguration::CB) {
+            error = distance - (m_chassis->getTrackingWheels()->center->getDistanceTraveled() - m_initialDistance);
+        }
+
+        else {
+            error = distance - (m_chassis->getTrackingWheels()->left->getDistanceTraveled() - m_initialDistance);
+        }
 
         while (fabs(error) > 0.25)
         {
-            error = distance -
-                (m_chassis->getTrackingWheels()->center->getDistanceTraveled() -
-                    m_initialDistance);
+            if (m_chassis->getTrackingWheels()->config == TrackingConfiguration::CB) {
+                error = distance - (m_chassis->getTrackingWheels()->center->getDistanceTraveled() - m_initialDistance);
+            }
+
+            else {
+                error = distance - (m_chassis->getTrackingWheels()->left->getDistanceTraveled() - m_initialDistance);
+            }
 
             // spin motors
             int multiplier = (error > 0) ? 1 : -1;
@@ -61,10 +77,20 @@ void MotionController::drive(double distance, double maxSpeed, double maxTime,
             if (maxTime != 0 && m_processTimer > maxTime)
                 break;
 
-            double linError =
-                distance -
+            double linError;
+
+            if (m_chassis->getTrackingWheels()->config == TrackingConfiguration::CB) {
+                linError = distance -
                 (m_chassis->getTrackingWheels()->center->getDistanceTraveled() -
                     m_initialDistance);
+            }
+
+            else {
+                linError = distance -
+                (m_chassis->getTrackingWheels()->left->getDistanceTraveled() -
+                    m_initialDistance);
+            }
+    
             double angError = m_lastTargetAngle - m_chassis->getHeading();
 
             // check force exit error
@@ -437,7 +463,6 @@ void MotionController::turn(Point target, double maxSpeed, double maxTime,
     Pose p = m_chassis->getPose();
     double angle = math::wrap180(calc::angleDifference({ p.x, p.y }, target) -
         p.theta.value_or(0));
-    std::cout << "angle: " << angle << std::endl;
     turn(angle, maxSpeed, false, maxTime, forceExitError, thru);
 }
 } // namespace reauto
