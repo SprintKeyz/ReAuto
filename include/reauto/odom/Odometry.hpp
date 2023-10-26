@@ -16,9 +16,14 @@
 // functions are left up to the chassis class
 
 namespace reauto {
+
+enum class OdomPrefs {
+    PREFER_RIGHT_WHEEL // specifies the use of the RIGHT wheels when using powered tracking wheels
+};
+
 class Odometry {
 public:
-    Odometry(TrackingWheels* wheels, device::IMU* imu);
+    Odometry(TrackingWheels* wheels, device::IMU* imu, OdomPrefs prefs);
 
     void resetPosition();
     void setPosition(Point p);
@@ -37,6 +42,9 @@ private:
     double m_prevLeftPos;
     double m_prevRightPos;
     double m_prevRotationRad;
+
+    // advanced odom preferences
+    bool m_preferRightWheel = false;
 
     void resetPreviousVariables();
 };

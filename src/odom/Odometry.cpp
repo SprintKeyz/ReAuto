@@ -1,9 +1,15 @@
 #include "reauto/odom/Odometry.hpp"
 #include "reauto/device/IMU.hpp"
+#include "reauto/device/TrackingWheels.hpp"
 #include "reauto/math/Convert.hpp"
+#include <cmath>
 
 namespace reauto {
-Odometry::Odometry(TrackingWheels* wheels, device::IMU* imu) : m_wheels(wheels), m_imu(imu) {}
+Odometry::Odometry(TrackingWheels* wheels, device::IMU* imu, OdomPrefs prefs) : m_wheels(wheels), m_imu(imu) {
+    if (prefs == OdomPrefs::PREFER_RIGHT_WHEEL) {
+        m_preferRightWheel = true;
+    }
+}
 
 void Odometry::resetPreviousVariables() {
     m_prevRotationRad = 0;
@@ -65,10 +71,8 @@ void Odometry::startTracking() {
             while (true) {
                 middlePos = (m_wheels->center != nullptr) ? m_wheels->center->getPosition() : 0;
                 backPos = (m_wheels->back != nullptr) ? m_wheels->back->getPosition() : 0;
-                leftPos = (m_wheels->left != nullptr) ? math::inToDeg(m_wheels->left->getDistanceTraveled(), m_wheels->left->getDiameter()) : 0;
-                rightPos = (m_wheels->right == nullptr) ? m_wheels->right->getPosition() : 0;
-
-                //std::cout << "Left position: " << leftPos << std::endl;
+                leftPos = (m_wheels->left == nullptr) ? math::inToDeg(m_wheels->left->getDistanceTraveled(), m_wheels->left->getDiameter()) : 0;
+                rightPos = (m_wheels->right != nullptr) ? math::inToDeg(m_wheels->right->getDistanceTraveled(), m_wheels->right->getDiameter()) : 0;
 
                 currentRotationRad = m_imu->getRotation(true);
 
@@ -96,7 +100,13 @@ void Odometry::startTracking() {
                     break;
 
                 case TrackingConfiguration::LR:
-                    dFwd = math::degToIn(deltaLeftPos, m_wheels->left->getDiameter()) - m_wheels->left->getCenterDistance() * dRotation;
+                    if (m_preferRightWheel) {
+                        dFwd = math::degToIn(deltaRightPos, m_wheels->right->getDiameter()) - m_wheels->right->getCenterDistance() * dRotation;
+                    }
+
+                    else {
+                        dFwd = math::degToIn(deltaLeftPos, m_wheels->left->getDiameter()) - m_wheels->left->getCenterDistance() * dRotation;
+                    }
                     break;
 
                 case TrackingConfiguration::LRB:
@@ -106,7 +116,14 @@ void Odometry::startTracking() {
 
                 case TrackingConfiguration::NA:
                     // user has no unpowered wheels (same as LR because it's abstracted)
-                    dFwd = math::degToIn(deltaLeftPos, m_wheels->left->getDiameter()) - m_wheels->left->getCenterDistance() * dRotation;
+                    if (m_preferRightWheel) {
+                        dFwd = math::degToIn(deltaRightPos, m_wheels->right->getDiameter()) - m_wheels->right->getCenterDistance() * dRotation;
+                    }
+
+                    else {
+                        dFwd = math::degToIn(deltaLeftPos, m_wheels->left->getDiameter()) - m_wheels->left->getCenterDistance() * dRotation;
+                    }
+
                     break;
                 }
 
@@ -114,20 +131,23 @@ void Odometry::startTracking() {
                 double cosHeading = cos(currentRotationRad);
                 double sinHeading = sin(currentRotationRad);
 
-                // calculate the change in position
-                double dX = dFwd * cosHeading - dSide * sinHeading;
-                double dY = dFwd * sinHeading + dSide * cosHeading;
+                double dX, dY;
 
-                // update the position
-                if (!(m_wheels->config == TrackingConfiguration::NA)) {
-                    m_pos.x += dX;
-                    m_pos.y += dY;
+                // calculate the change in position
+                if (m_wheels->config == TrackingConfiguration::NA || m_wheels->config == TrackingConfiguration::LR) {
+                    dX = dFwd * sinHeading;
+                    dY = dFwd * cosHeading;
                 }
 
                 else {
-                    // I'm not entirely sure what this is. I expect it's a bug, but odometry works so I'll leave it for now.
-                    m_pos.x += dY;
-                    m_pos.y += dX;
+                    dX = dFwd * cosHeading - dSide * sinHeading;
+                    dY = dFwd * sinHeading + dSide * cosHeading;
+                }
+
+                if (!std::isnan(dX) && !std::isnan(dY)) {
+                    // update the position
+                    m_pos.x += dX;
+                    m_pos.y += dY;
                 }
 
                 pros::delay(ODOM_TIMESTEP);

@@ -58,6 +58,7 @@ double MotorSet::get_position() const {
     double sum = 0;
     for (auto& motor : m_motors) {
         sum += motor.get_position();
+        std::cout << motor.get_position() << std::endl;
     }
 
     return sum / m_motors.size();

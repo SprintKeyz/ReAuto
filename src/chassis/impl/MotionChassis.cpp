@@ -1,6 +1,7 @@
 #include "reauto/chassis/impl/MotionChassis.hpp"
 #include "reauto/chassis/impl/HolonomicMode.hpp"
 #include "reauto/motion/Slew.hpp"
+#include "reauto/odom/Odometry.hpp"
 
 #include <cmath>
 
@@ -12,7 +13,7 @@ MotionChassis::MotionChassis(
     int8_t firstTWheelPort, double firstTWheelDist, int8_t secondTWheelPort,
     double secondTWheelDist, int8_t thirdTWheelPort, double thirdTWheelDist,
     double tWheelDiam, TrackingConfiguration tConfig, double trackWidth,
-    double wheelDiameter, double rpm)
+    double wheelDiameter, double rpm, OdomPrefs odomPrefs)
     : m_controller(controller) {
 
   switch (holoMode) {
@@ -79,15 +80,14 @@ MotionChassis::MotionChassis(
         m_robot->getRightMotors(), m_measurements.wheelDiameter,
         m_measurements.trackWidth / 2, m_measurements.rpm);
 
-    std::cout << "TConfig NA" << std::endl;
-    std::cout << "IS NULLPTR BACK: " << (m_trackingWheels->left == nullptr)
-              << std::endl;
     break;
   }
 
   m_trackingWheels->config = tConfig;
-
   m_measurements = {trackWidth, wheelDiameter, rpm};
+
+  // make odometry
+  m_odom = std::make_shared<Odometry>(m_trackingWheels.get(), m_imu.get(), odomPrefs);
 }
 
 RobotMeasurements MotionChassis::getMeasurements() const {
@@ -100,17 +100,6 @@ void MotionChassis::init() {
   // reset IMU
   m_imu->reset(true);
 
-  std::cout << "Reset IMU" << std::endl;
-
-  std::cout << "IS NULLPTR BACK: " << (m_trackingWheels->back == nullptr)
-            << std::endl;
-  std::cout << "IS NULLPTR CENTER: " << (m_trackingWheels->center == nullptr)
-            << std::endl;
-  std::cout << "IS NULLPTR LEFT: " << (m_trackingWheels->left == nullptr)
-            << std::endl;
-  std::cout << "IS NULLPTR RIGHT: " << (m_trackingWheels->right == nullptr)
-            << std::endl;
-
   // reset encoder positions
   if (m_trackingWheels->back != nullptr)
     m_trackingWheels->back->reset();
@@ -121,10 +110,7 @@ void MotionChassis::init() {
   if (m_trackingWheels->right != nullptr)
     m_trackingWheels->right->reset();
 
-  std::cout << "Reset tracking wheels" << std::endl;
-
-  // odometry
-  m_odom = std::make_shared<Odometry>(m_trackingWheels.get(), m_imu.get());
+  // start odometry
   m_odom->resetPosition();
   m_odom->startTracking();
 

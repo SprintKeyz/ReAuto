@@ -2,19 +2,23 @@
 #include "pros/misc.hpp"
 #include "reauto/api.hpp"
 #include "reauto/motion/purepursuit/PurePursuit.hpp"
+#include "reauto/odom/Odometry.hpp"
 #include <fstream>
 #include <memory>
 #include <streambuf>
 #include <string>
 
+using namespace reauto;
+
 pros::Controller master(pros::E_CONTROLLER_MASTER);
 
 auto chassis =
-	reauto::ChassisBuilder<>()
+	ChassisBuilder<>()
 		.motors({14, -19, -18}, {16, 15, -13}, pros::MotorGears::blue)
 		.controller(master)
 		.setChassisConstants(10.5_in, 3.25_in, 360)
 		.imu(21)
+		.odomPrefs(OdomPrefs::PREFER_RIGHT_WHEEL) /* optional, don't add this line unless needed */
 		.build();
 
 // the catapult is free spinning, so no need to add any functionality to reauto.
@@ -52,11 +56,11 @@ PIDExits angExits = {
 	250
 };
 
-auto linPID = std::make_shared<reauto::controller::PIDController>(latConstants, linExits);
-auto angPID = std::make_shared<reauto::controller::PIDController>(angConstants, angExits);
-auto controller = std::make_shared<reauto::MotionController>(chassis, linPID.get(), angPID.get());
+auto linPID = std::make_shared<controller::PIDController>(latConstants, linExits);
+auto angPID = std::make_shared<controller::PIDController>(angConstants, angExits);
+auto controller = std::make_shared<MotionController>(chassis, linPID.get(), angPID.get());
 
-auto purePursuit = std::make_shared<reauto::motion::PurePursuit>(chassis.get());
+auto purePursuit = std::make_shared<motion::PurePursuit>(chassis.get());
 
 void initialize() {
 	chassis->init();

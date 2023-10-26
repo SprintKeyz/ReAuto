@@ -48,7 +48,8 @@ public:
         TrackingConfiguration tConfig,
         double trackWidth,
         double wheelDiameter,
-        double gearRatio
+        double rpm,
+        OdomPrefs odomPrefs
     );
 
     // init chassis!
