@@ -59,7 +59,7 @@ void Odometry::startTracking() {
             }
 
             if (m_wheels->right != nullptr) {
-                rightPos = m_wheels->right->getPosition();
+                rightPos = leftPos = math::inToDeg(m_wheels->left->getDistanceTraveled(), m_wheels->left->getDiameter());
             }
 
             m_prevRotationRad = currentRotationRad;
@@ -71,7 +71,7 @@ void Odometry::startTracking() {
             while (true) {
                 middlePos = (m_wheels->center != nullptr) ? m_wheels->center->getPosition() : 0;
                 backPos = (m_wheels->back != nullptr) ? m_wheels->back->getPosition() : 0;
-                leftPos = (m_wheels->left == nullptr) ? math::inToDeg(m_wheels->left->getDistanceTraveled(), m_wheels->left->getDiameter()) : 0;
+                leftPos = (m_wheels->left != nullptr) ? math::inToDeg(m_wheels->left->getDistanceTraveled(), m_wheels->left->getDiameter()) : 0;
                 rightPos = (m_wheels->right != nullptr) ? math::inToDeg(m_wheels->right->getDistanceTraveled(), m_wheels->right->getDiameter()) : 0;
 
                 currentRotationRad = m_imu->getRotation(true);
