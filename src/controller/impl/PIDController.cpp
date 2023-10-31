@@ -37,7 +37,7 @@ void PIDController::resetErrors() {
 }
 
 void PIDController::setTarget(double target, bool reset) {
-    m_constants = m_constantTable.get(target);
+    m_constants = m_constantTable.get(fabs(target));
     m_target = target;
     m_error = target;
     if (reset) resetController();
