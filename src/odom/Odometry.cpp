@@ -3,11 +3,12 @@
 #include "reauto/device/TrackingWheels.hpp"
 #include "reauto/math/Convert.hpp"
 #include <cmath>
+#include <iostream>
 
 namespace reauto {
 Odometry::Odometry(TrackingWheels* wheels, device::IMU* imu, OdomPrefs prefs) : m_wheels(wheels), m_imu(imu) {
     if (prefs == OdomPrefs::PREFER_RIGHT_WHEEL) {
-        m_preferRightWheel = true;
+        m_preferRightWheel = false; // we NEED to fix odomprefs, always returns prefer right wheel
     }
 }
 
@@ -121,7 +122,7 @@ void Odometry::startTracking() {
                     }
 
                     else {
-                        dFwd = math::degToIn(deltaLeftPos, m_wheels->left->getDiameter()) - m_wheels->left->getCenterDistance() * dRotation;
+                        dFwd = math::degToIn(deltaLeftPos, m_wheels->left->getDiameter()) - (m_wheels->left->getCenterDistance() * dRotation);
                     }
 
                     break;

@@ -37,12 +37,14 @@ std::vector<IPIDConstants> latConstants = {
 	{ 12, 0, 0.4, 12},
 	{ 12, 0, 0.6, 18},
 	{ 12, 0, 0.7, 24},
+	{12, 0, 0.9, 60}
 };
 
 // angular movement
 std::vector<IPIDConstants> angConstants = {
-	{3.5, 0, 0.21, 45},
-	{3.5, 0, 0.24, 90}
+	{3.8, 0, 0.21, 45},
+	{3.6, 0, 0.24, 90},
+	{3.4, 0, 0.24, 120}
 };
 
 PIDExits latExits = {
@@ -55,7 +57,7 @@ PIDExits latExits = {
 
 PIDExits angExits = {
 	0.5,
-	1,
+	2,
 	60,
 	150,
 	250
@@ -80,6 +82,30 @@ void autonomous() {
 
 	// PID testing
 	//controller->turn(90_deg);
+
+	controller->turn(-32_deg);
+	controller->drive({0, 82}, 80_pct);
+	controller->drive({-6, 82}, 100_pct, true);
+	controller->drive({-28, 77}, 80_pct, true);
+	controller->drive({-63, 60}, 80_pct, true);
+	controller->turn(0_deg, 80_pct, false, 750);
+	controller->drive(-12_in, 100_pct, 1000);
+
+	pros::delay(5000);
+
+	// drive back
+	controller->drive({-6, 80}, 80_pct);
+	controller->drive({0, 0}, 60_pct);
+
+	/*controller->turn(50_deg, 127, false, 750);
+	controller->drive(82_in, 100, 4500); // this should be 82
+	controller->turn(125_deg, 127, false, 750);
+	controller->drive(-22_in, 127, 1500);
+	controller->turn(65_deg, 127, false, 750);
+	controller->drive(-14_in, 127, 1500);
+	controller->turn(155_deg, 127, false, 750);
+	controller->drive(-24_in, 127, 1500);
+	controller->turn(-45_deg, 100, false, 750); // TODO: TUNE THIS!!!*/
 }
 
 void opcontrol() {
@@ -88,6 +114,8 @@ void opcontrol() {
 
 	chassis->setDriveExponent(3);
  	chassis->setControllerDeadband(12);
+
+	//controller->drive({12, 12}, 127);
 
 	while (true) {
 		// step our tank drive loop, handled by reauto

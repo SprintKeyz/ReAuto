@@ -142,12 +142,19 @@ void MotionController::drive(Point target, double maxSpeed, bool invert,
     double maxTime, double forceExitError, bool thru)
 {
     // calc distance and angle errors
-    Point initial = { m_chassis->getPose().x, m_chassis->getPose().y };
+    Point initial = { m_chassis->getPose().y, m_chassis->getPose().x };
+
+    target = { target.y, target.x };
 
     // get distance and angle to point
     double dist = calc::distance(initial, target);
     double angle = math::wrap180(calc::angleDifference(initial, target) -
         m_chassis->getHeading());
+
+    std::cout << "initial: " << initial.x << ", " << initial.y << std::endl;
+    std::cout << "target: " << target.x << ", " << target.y << std::endl;
+
+    std::cout << "ANGLE DIFF: " << angle << std::endl;
 
     // tips: disable turning when close to the target (within a few inches) and
     // multiply lateral error by cos(ang error)
@@ -166,11 +173,16 @@ void MotionController::drive(Point target, double maxSpeed, bool invert,
         if (maxTime != 0 && m_processTimer > maxTime)
             break;
 
-        Point current = { m_chassis->getPose().x, m_chassis->getPose().y };
+        Point current = { m_chassis->getPose().y, m_chassis->getPose().x };
+
+        //std::cout << "Current is: " << current.x << ", " << current.y << std::endl;
+        //std::cout << "Target is: " << target.x << ", " << target.y << std::endl;
 
         dist = calc::distance(current, target);
         angle = math::wrap180(calc::angleDifference(current, target) -
             m_chassis->getHeading());
+
+        std::cout << "Dist: " << dist << ", Angle: " << angle << std::endl;
 
         // check force exit error
         if (forceExitError != 0 && std::abs(dist) < forceExitError)
@@ -250,10 +262,10 @@ void MotionController::driveToPose(Pose target, double leadToPose,
     bool thru)
 {
     // calc distance and angle errors
-    Point initial = { m_chassis->getPose().x, m_chassis->getPose().y };
+    Point initial = { m_chassis->getPose().y, m_chassis->getPose().x };
 
     // get distance and angle to point
-    double distToTarget = calc::distance(initial, { target.x, target.y });
+    double distToTarget = calc::distance(initial, { target.y, target.x });
 
     // set PID targets - angle target is our current heading at first
     m_linear->setTarget(distToTarget);
@@ -270,9 +282,9 @@ void MotionController::driveToPose(Pose target, double leadToPose,
         if (maxTime != 0 && m_processTimer > maxTime)
             break;
 
-        Point current = { m_chassis->getPose().x, m_chassis->getPose().y };
+        Point current = { m_chassis->getPose().y, m_chassis->getPose().x };
 
-        double distError = calc::distance(current, { target.x, target.y });
+        double distError = calc::distance(current, { target.y, target.x });
         // angle error is the angle to the boomerang point
         Point boomerang = calcCarrotPoint(initial, target, leadToPose);
 
@@ -300,7 +312,7 @@ void MotionController::driveToPose(Pose target, double leadToPose,
 
         // if we are physically close and the total movement was somewhat large, we
         // can disable turning
-        bool closeToTarget = (calc::distance(current, { target.x, target.y }) < 4);
+        bool closeToTarget = (calc::distance(current, { target.y, target.x }) < 4);
         if (closeToTarget)
         {
             angOutput = 0;
@@ -461,7 +473,7 @@ void MotionController::turn(Point target, double maxSpeed, double maxTime,
 {
     // calculate angle to the point
     Pose p = m_chassis->getPose();
-    double angle = math::wrap180(calc::angleDifference({ p.x, p.y }, target) -
+    double angle = math::wrap180(calc::angleDifference({ p.y, p.x }, target) -
         p.theta.value_or(0));
     turn(angle, maxSpeed, false, maxTime, forceExitError, thru);
 }
