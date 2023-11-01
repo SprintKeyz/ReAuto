@@ -248,25 +248,25 @@ void MotionChassis::arcade(double speedScale) {
   double forward = m_controller.get_analog(m_forwardChannel);
   double turn = m_controller.get_analog(m_turnChannel);
 
-  // get the left and right motor voltages
-  double left = forward - turn;
-  double right = forward + turn;
-
   // account for deadband
-  left = (fabs(left) < m_deadband) ? 0 : left;
-  right = (fabs(right) < m_deadband) ? 0 : right;
+  forward = (fabs(forward) < m_deadband) ? 0 : forward;
+  turn = (fabs(turn) < m_deadband) ? 0 : turn;
 
   // apply the custom drive behavior
   if (m_useCustomBehavior) {
-    left = m_driveCustomBehavior(left);
-    right = m_driveCustomBehavior(right);
+    forward = m_driveCustomBehavior(forward);
+    turn = m_driveCustomBehavior(turn);
   }
 
   else if (m_exponent != 0) {
     // apply the default exponential drive implementation
-    left = calcExponentialDrive(left);
-    right = calcExponentialDrive(right);
+    forward = calcExponentialDrive(forward);
+    turn = calcExponentialDrive(turn);
   }
+
+  // get the left and right motor voltages
+  double left = forward - turn;
+  double right = forward + turn;
 
   // slew if applicable
   if (m_slewStep > 0) {
