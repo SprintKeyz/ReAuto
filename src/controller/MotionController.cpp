@@ -151,11 +151,6 @@ void MotionController::drive(Point target, double maxSpeed, bool invert,
     double angle = math::wrap180(calc::angleDifference(initial, target) -
         m_chassis->getHeading());
 
-    std::cout << "initial: " << initial.x << ", " << initial.y << std::endl;
-    std::cout << "target: " << target.x << ", " << target.y << std::endl;
-
-    std::cout << "ANGLE DIFF: " << angle << std::endl;
-
     // tips: disable turning when close to the target (within a few inches) and
     // multiply lateral error by cos(ang error)
 
@@ -181,8 +176,6 @@ void MotionController::drive(Point target, double maxSpeed, bool invert,
         dist = calc::distance(current, target);
         angle = math::wrap180(calc::angleDifference(current, target) -
             m_chassis->getHeading());
-
-        std::cout << "Dist: " << dist << ", Angle: " << angle << std::endl;
 
         // check force exit error
         if (forceExitError != 0 && std::abs(dist) < forceExitError)
@@ -359,8 +352,8 @@ void MotionController::turn(double angle, double maxSpeed, bool relative,
 
     if (relative)
     {
-        m_angular->setTarget(m_chassis->getHeading() + angle);
-        m_lastTargetAngle = m_chassis->getHeading() + angle;
+        m_angular->setTarget(math::wrap180(m_chassis->getHeading() + angle));
+        m_lastTargetAngle = math::wrap180(m_chassis->getHeading() + angle);
     }
 
     else
@@ -375,7 +368,7 @@ void MotionController::turn(double angle, double maxSpeed, bool relative,
         if (maxTime != 0 && m_processTimer > maxTime)
             return;
 
-        double error = angle - m_chassis->getHeading();
+        double error = math::wrap180(angle - m_chassis->getHeading());
 
         // check force exit error
         if (forceExitError != 0 && std::abs(error) < forceExitError)
@@ -406,8 +399,8 @@ void MotionController::swing(double angle, double maxSpeed, double forceOneSide,
 
     if (relative)
     {
-        m_angular->setTarget(m_chassis->getHeading() + angle);
-        m_lastTargetAngle = m_chassis->getHeading() + angle;
+        m_angular->setTarget(math::wrap180(m_chassis->getHeading() + angle));
+        m_lastTargetAngle = math::wrap180(m_chassis->getHeading() + angle);
     }
 
     else
@@ -422,7 +415,7 @@ void MotionController::swing(double angle, double maxSpeed, double forceOneSide,
         if (maxTime != 0 && m_processTimer > maxTime)
             return;
 
-        double error = angle - m_chassis->getHeading();
+        double error = math::wrap180(angle - m_chassis->getHeading());
 
         // check force exit error
         if (forceExitError != 0 && std::abs(error) < forceExitError)
