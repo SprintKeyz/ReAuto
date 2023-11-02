@@ -158,6 +158,7 @@ void opcontrol() {
  	chassis->setControllerDeadband(12);
 
 	chassis->setArcadeDriveChannels(pros::E_CONTROLLER_ANALOG_LEFT_Y, pros::E_CONTROLLER_ANALOG_RIGHT_X);
+	chassis->setSecondaryArcadeTurnChannel(pros::E_CONTROLLER_ANALOG_LEFT_X);
 
 	//controller->drive({12, 12}, 127);
 

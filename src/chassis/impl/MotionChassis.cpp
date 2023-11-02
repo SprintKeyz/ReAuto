@@ -187,6 +187,11 @@ double MotionChassis::calcExponentialDrive(double input) {
   return (std::pow(input, m_exponent) / (std::pow(100, 2)));
 }
 
+void MotionChassis::setSecondaryArcadeTurnChannel(pros::controller_analog_e_t channel) {
+  m_hasSecondaryTurnChannel = true;
+  m_secondaryTurnChannel = channel;
+}
+
 void MotionChassis::tank(double speedScale) {
   // get left and right joystick values
   double left = m_controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
@@ -247,6 +252,11 @@ void MotionChassis::arcade(double speedScale) {
   // get forward and turn joystick values
   double forward = m_controller.get_analog(m_forwardChannel);
   double turn = m_controller.get_analog(m_turnChannel);
+
+  // if secondary turn channel
+  if (m_hasSecondaryTurnChannel) {
+    turn += m_controller.get_analog(m_secondaryTurnChannel);
+  }
 
   // account for deadband
   forward = (fabs(forward) < m_deadband) ? 0 : forward;

@@ -92,6 +92,9 @@ public:
     // set the channels to be used for arcade drive
     void setArcadeDriveChannels(pros::controller_analog_e_t forwardChannel, pros::controller_analog_e_t turnChannel);
 
+    // SPECIAL feature requested by our driver
+    void setSecondaryArcadeTurnChannel(pros::controller_analog_e_t channel);
+
     // update the chassis tank drive with joystick values
     void tank(double speedScale = 127);
 
@@ -155,6 +158,7 @@ private:
     pros::controller_analog_e_t m_forwardChannel = pros::E_CONTROLLER_ANALOG_LEFT_Y;
     pros::controller_analog_e_t m_turnChannel = pros::E_CONTROLLER_ANALOG_RIGHT_X;
     pros::controller_analog_e_t m_secondaryTurnChannel;
+    bool m_hasSecondaryTurnChannel = false;
 
     // for slew
     double m_currentLeftVoltage = 0;
