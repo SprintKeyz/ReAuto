@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pros/abstract_motor.hpp"
+#include "pros/misc.h"
 #include "reauto/chassis/base/MecanumBase.hpp"
 #include "reauto/chassis/base/TankBase.hpp"
 #include "reauto/chassis/template/RobotTemplate.hpp"
@@ -153,6 +154,7 @@ private:
     // for arcade drive
     pros::controller_analog_e_t m_forwardChannel = pros::E_CONTROLLER_ANALOG_LEFT_Y;
     pros::controller_analog_e_t m_turnChannel = pros::E_CONTROLLER_ANALOG_RIGHT_X;
+    pros::controller_analog_e_t m_secondaryTurnChannel;
 
     // for slew
     double m_currentLeftVoltage = 0;

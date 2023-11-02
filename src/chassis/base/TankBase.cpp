@@ -13,9 +13,11 @@ TankBase::TankBase(std::initializer_list<int8_t> left, std::initializer_list<int
 
 void TankBase::setLeftFwdVoltage(double voltage) {
     m_left->move(voltage);
+    std::cout << "LEFT VOLTAGE: " << voltage << std::endl;
 }
 
 void TankBase::setRightFwdVoltage(double voltage) {
+    std::cout << "RIGHT VOLTAGE: " << voltage << std::endl;
     m_right->move(voltage);
 }
 

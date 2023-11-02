@@ -265,8 +265,8 @@ void MotionChassis::arcade(double speedScale) {
   }
 
   // get the left and right motor voltages
-  double left = forward - turn;
-  double right = forward + turn;
+  double left = forward + turn;
+  double right = forward - turn;
 
   // slew if applicable
   if (m_slewStep > 0) {
@@ -292,15 +292,13 @@ void MotionChassis::arcade(double speedScale) {
 
   // set the motor voltages
   m_robot->setLeftFwdVoltage(
-      left * m_speedScale[0] == 1
-          ? 1
-          : (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127)));
+      left * (m_speedScale[1] == 1 ? 1 : ((left + 127) / 127)));
   m_robot->setRightFwdVoltage(
       right * (m_speedScale[1] == 1 ? 1 : ((right + 127) / 127)));
 
   // update the current voltage values
   m_currentLeftVoltage =
-      left * (m_speedScale[0] == 1 ? 1 : ((left + 127) / 127));
+      left * (m_speedScale[1] == 1 ? 1 : ((left + 127) / 127));
   m_currentRightVoltage =
       right * (m_speedScale[1] == 1 ? 1 : ((right + 127) / 127));
 }

@@ -1,4 +1,5 @@
 #include "main.h"
+#include "pros/misc.h"
 #include "pros/misc.hpp"
 #include "reauto/api.hpp"
 #include "reauto/motion/purepursuit/PurePursuit.hpp"
@@ -77,6 +78,13 @@ void disabled() {}
 
 void competition_initialize() {}
 
+void shootLoop(int time_ms) {
+	// shoot for ~45 seconds
+	cata.move_voltage(10800);
+	pros::delay(time_ms);
+	cata.move_voltage(0);
+}
+
 void autonomous() {
 	//purePursuit->follow("/usd/path.txt", 20000, 10);
 
@@ -84,17 +92,51 @@ void autonomous() {
 	//controller->turn(90_deg);
 
 	controller->turn(-32_deg);
-	controller->drive({0, 82}, 80_pct);
-	controller->drive({-6, 82}, 100_pct, true);
-	controller->drive({-28, 77}, 80_pct, true);
-	controller->drive({-63, 60}, 80_pct, true);
-	controller->turn(0_deg, 80_pct, false, 750);
-	controller->drive(-12_in, 100_pct, 1000);
+
+	//shootLoop(31000);
+
+	// delay for safety
+	//pros::delay(1500);
+
+	controller->drive({0, 82}, 80_pct, false, 1950);
+
+	// turn around the corner
+	controller->drive({-20, 82}, 100_pct, true, 1200);
+	controller->drive({-22, 56}, 100_pct, true, 900);
+	controller->drive({-22, 56}, 80_pct, true, 900);
+	
+	controller->drive({-63, 56}, 80_pct, true, 1200);
+
+	controller->turn(-180_deg, 80_pct, false, 750);
+	controller->drive(6_in);
+	pros::delay(1000); // TODO: figure out why this is needed
+
+	// walls out
+	walls.toggle();
+
+	controller->drive({-63, 81}, 100_pct, true, 2000);
+
+	// back up a bit
+	controller->drive(10_in, 100_pct, 1500);
+
+	// walls in
+	walls.toggle();
+
+	controller->drive({-75, 56}, 100_pct, true, 2000);
+
+	// walls out
+	walls.toggle();
+
+	controller->drive({-72, 95}, 100_pct, true, 2000);
+	controller->drive(14_in);
+
+	// walls in
+	walls.toggle();
 
 	pros::delay(5000);
 
 	// drive back
-	controller->drive({-6, 80}, 80_pct);
+	controller->drive({-6, 87}, 80_pct);
 	controller->drive({0, 0}, 60_pct);
 
 	/*controller->turn(50_deg, 127, false, 750);
@@ -115,11 +157,14 @@ void opcontrol() {
 	chassis->setDriveExponent(3);
  	chassis->setControllerDeadband(12);
 
+	chassis->setArcadeDriveChannels(pros::E_CONTROLLER_ANALOG_LEFT_Y, pros::E_CONTROLLER_ANALOG_RIGHT_X);
+
 	//controller->drive({12, 12}, 127);
 
 	while (true) {
 		// step our tank drive loop, handled by reauto
 		chassis->tank();
+		//chassis->arcade();
 
 		// get pose
 		Pose p = chassis->getPose();
