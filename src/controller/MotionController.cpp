@@ -183,12 +183,14 @@ void MotionController::drive(Point target, double maxSpeed, bool invert,
 
         dist *= cos(math::degToRad(angle));
 
-        if (invert /*|| angle > 90*/)
+        double distOutput = m_linear->calculate(dist);
+
+        if (invert /*|| angle > 90*/ || distOutput < 0)
         {
+            // also invert on overshoot
             angle = math::wrap180(angle + 180);
         }
 
-        double distOutput = m_linear->calculate(dist);
         double angOutput = m_angular->calculate(angle);
 
         // if we are physically close and the total movement was somewhat large, we
