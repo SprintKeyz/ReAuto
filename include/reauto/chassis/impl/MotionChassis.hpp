@@ -126,6 +126,10 @@ public:
 
     RobotMeasurements getMeasurements() const;
 
+    // advanced odom methods
+    void startOdometry();
+    void killOdometry();
+
 private:
     // base robot drivetrain
     std::shared_ptr<RobotTemplate> m_robot;

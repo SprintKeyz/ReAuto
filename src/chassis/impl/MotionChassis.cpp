@@ -111,11 +111,20 @@ void MotionChassis::init() {
     m_trackingWheels->right->reset();
 
   // start odometry
-  m_odom->resetPosition();
-  m_odom->startTracking();
+  //m_odom->resetPosition();
+  //m_odom->startTracking();
 
   // done!
   std::cout << "[ReAuto] Init complete!" << std::endl;
+}
+
+void MotionChassis::startOdometry() {
+  m_odom->resetPosition();
+  m_odom->startTracking();
+}
+
+void MotionChassis::killOdometry() {
+  m_odom->killOdom();
 }
 
 void MotionChassis::setLeftVoltage(double voltage) {

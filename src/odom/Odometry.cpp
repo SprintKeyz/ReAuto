@@ -32,10 +32,20 @@ Point Odometry::getPosition() {
     return m_pos;
 }
 
-void Odometry::startTracking() {
-    resetPosition();
+void Odometry::killOdom() {
+    if (m_odomStarted) {
+        m_odomTask->remove();
+        m_odomStarted = false;
+    }
+}
 
-    pros::Task odomTask{
+void Odometry::startTracking() {
+    if (m_odomStarted) return;
+
+    resetPosition();
+    m_odomStarted = true;
+
+    m_odomTask = new pros::Task{
         [this] {
             std::cout << "[ReAuto] Started odometry" << std::endl;
 

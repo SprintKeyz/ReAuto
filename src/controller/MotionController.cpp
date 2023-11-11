@@ -3,6 +3,7 @@
 #include "reauto/device/TrackingWheels.hpp"
 #include "reauto/math/Calculate.hpp"
 #include "reauto/math/Convert.hpp"
+#include <cmath>
 
 namespace reauto
 {
@@ -148,6 +149,7 @@ void MotionController::drive(Point target, double maxSpeed, bool invert,
 
     // get distance and angle to point
     double dist = calc::distance(initial, target);
+    double prevDistOutput = 0;
     double angle = math::wrap180(calc::angleDifference(initial, target) -
         m_chassis->getHeading());
 
@@ -156,6 +158,13 @@ void MotionController::drive(Point target, double maxSpeed, bool invert,
 
     // set PID targets
     m_linear->setTarget(dist);
+
+    // invert angle if needed
+    if (invert)
+    {
+        angle = math::wrap180(angle + 180);
+    }
+
     m_angular->setTarget(angle);
 
     // set last target angle
@@ -185,11 +194,14 @@ void MotionController::drive(Point target, double maxSpeed, bool invert,
 
         double distOutput = m_linear->calculate(dist);
 
-        if (invert /*|| angle > 90*/ || distOutput < 0)
+        if ((std::signbit(distOutput) != std::signbit(prevDistOutput)) && prevDistOutput != 0)
         {
-            // also invert on overshoot
+            // invert on overshoot
             angle = math::wrap180(angle + 180);
         }
+
+        prevDistOutput = distOutput;
+
 
         double angOutput = m_angular->calculate(angle);
 

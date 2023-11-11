@@ -30,6 +30,8 @@ public:
     Point getPosition();
     void startTracking();
 
+    void killOdom();
+
 private:
     Point m_pos;
     TrackingWheels* m_wheels;
@@ -45,6 +47,10 @@ private:
 
     // advanced odom preferences
     bool m_preferRightWheel = false;
+
+    // underlying odom task
+    pros::Task* m_odomTask = nullptr;
+    bool m_odomStarted = false;
 
     void resetPreviousVariables();
 };

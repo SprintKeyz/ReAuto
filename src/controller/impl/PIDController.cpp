@@ -106,7 +106,6 @@ bool PIDController::settled() {
     // check small error
     // print error
     if (debug == 10) {
-        std::cout << "Error: " << m_error << std::endl;
         debug = 0;
     }
     debug++;
@@ -143,7 +142,7 @@ bool PIDController::settled() {
     if (fabs(m_derivative) <= 0.05) {
         m_velocityTimer += MOTION_TIMESTEP;
 
-        if (m_velocityTimer >= m_exits.velocityTimeout) {
+        if (m_velocityTimer >= m_exits.velocityTimeout && m_velocityTimer >= 1000) {
             resetErrors();
             std::cout << "Exit velocity" << std::endl;
             return true;
